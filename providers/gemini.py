@@ -1,3 +1,4 @@
+
 from google import genai
 from providers.base import BaseProvider
 
@@ -7,14 +8,14 @@ class GeminiProvider(BaseProvider):
         self.client = genai.Client(api_key=api_key)
 
     def analyse(self, issue, files=None):
-    print("FIXI: Sending request to Gemini...", flush=True)
+        print("FIXI: Sending request to Gemini...", flush=True)
 
-    response = self.client.interactions.create(
-        model="gemini-3.8-flash",
-        input=issue,
-        timeout=15
-    )
+        response = self.client.interactions.create(
+            model="gemini-3.8-flash",
+            input=issue,
+            timeout=15
+        )
 
-    print("FIXI: Gemini response received!", flush=True)
+        print("FIXI: Gemini response received!", flush=True)
 
-    return response.output_text
+        return response.output_text
