@@ -5,16 +5,15 @@ from providers.base import BaseProvider
 
 class GeminiProvider(BaseProvider):
     def __init__(self, api_key):
-        # Initialize client with an extended global HTTP timeout (e.g., 120 seconds)
+        # Set timeout to 300,000 milliseconds (5 minutes)
         self.client = genai.Client(
             api_key=api_key,
-            http_options=types.HttpOptions(timeout=120.0)
+            http_options=types.HttpOptions(timeout=300000)
         )
 
     def analyse(self, issue, files=None):
         print("FIXI: Sending request to Gemini...", flush=True)
 
-        # Build input payload including text and optional files
         input_data = [issue]
         if files:
             input_data.extend(files)
