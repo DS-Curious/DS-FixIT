@@ -19,9 +19,9 @@ class GeminiProvider(BaseProvider):
                 )
             )
 
-        response = self.client.models.generate_content(
+        response = self.client.interactions.create(
             model="gemini-3.8-flash",
-            contents=contents
+            input=contents
         )
 
-        return response.text
+        return response.output_text
