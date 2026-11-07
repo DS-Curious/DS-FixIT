@@ -11,18 +11,25 @@ class GeminiProvider(BaseProvider):
             http_options=types.HttpOptions(timeout=300000)
         )
 
-    def analyse(self, issue, files=None):
-        print("FIXI: Sending request to Gemini...", flush=True)
+   def analyse(self, issue, files=None):
+    import time
 
-        input_data = [issue]
-        if files:
-            input_data.extend(files)
+    print("FIXI: Starting Gemini test...", flush=True)
+    start = time.time()
 
+    try:
         response = self.client.interactions.create(
             model="gemini-3.8-flash",
-            input=input_data
+            input="Reply with exactly: Gemini connection successful."
         )
 
-        print("FIXI: Gemini response received!", flush=True)
+        elapsed = time.time() - start
+
+        print(f"FIXI: Response received in {elapsed:.2f}s", flush=True)
 
         return response.output_text
+
+    except Exception as e:
+        elapsed = time.time() - start
+        print(f"FIXI ERROR after {elapsed:.2f}s: {repr(e)}", flush=True)
+        raise
