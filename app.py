@@ -2,59 +2,55 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="DS FixIT",
+    page_title="DS-FixIT | Universal AI Problem Detector",
     page_icon="⚡",
     layout="wide"
 )
 
-st.title("⚡ DS FixIT")
-st.caption("Your modular AI-powered assistant")
+# Header
+st.title("⚡ DS-FixIT")
+st.subheader("Universal AI Problem Detector")
+st.markdown("### Detect. Analyse. Fix.")
+st.caption("Created by J.P. Dheepak Saianand")
 
-# Sidebar
-st.sidebar.title("DS FixIT")
-st.sidebar.subheader("AI Configuration")
+st.divider()
 
-provider = st.sidebar.selectbox(
-    "Choose AI Provider",
-    [
-        "Not connected",
-        "OpenAI",
-        "Google Gemini",
-        "Anthropic",
-        "Custom API"
-    ]
+# Issue submission
+st.header("🔍 What's the problem?")
+
+st.write(
+    "Upload evidence or describe any issue. "
+    "DS-FixIT will analyse it and help find a solution."
 )
 
-st.sidebar.write("Selected:", provider)
+issue_text = st.text_area(
+    "Describe your issue (optional)",
+    placeholder="Explain what's happening..."
+)
 
-# Chat interface
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+uploaded_files = st.file_uploader(
+    "Upload images, audio, documents or other files",
+    accept_multiple_files=True,
+    help="You can upload multiple files."
+)
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+if st.button("🔎 Analyse Issue", type="primary"):
+    if not issue_text.strip() and not uploaded_files:
+        st.warning("Please describe an issue or upload a file.")
+    else:
+        st.session_state["pending_issue"] = {
+            "description": issue_text,
+            "files": uploaded_files
+        }
+        st.success("Issue submitted successfully!")
+        st.info(
+            "Analysis engine integration is the next development step."
+        )
 
-prompt = st.chat_input("Ask DS FixIT anything...")
+st.divider()
 
-if prompt:
-    st.session_state.messages.append({
-        "role": "user",
-        "content": prompt
-    })
-
-    with st.chat_message("user"):
-        st.write(prompt)
-
-    response = (
-        "DS FixIT received your message! "
-        "AI integration is coming soon."
-    )
-
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": response
-    })
-
-    with st.chat_message("assistant"):
-        st.write(response)
+# FIXI placeholder
+st.header("✨ Meet FIXI")
+st.write(
+    "Your polite, honest and supportive AI companion."
+)
