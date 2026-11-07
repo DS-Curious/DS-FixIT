@@ -30,6 +30,7 @@ files = st.file_uploader(
 )
 
 if st.button("Analyse Issue", type="primary"):
+        st.write("DEBUG: Analyse button clicked")
 
     if not description.strip() and not files:
         st.warning("Please describe or upload an issue.")
