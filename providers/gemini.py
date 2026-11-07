@@ -1,7 +1,6 @@
-
 from google import genai
+from google.genai import types
 from providers.base import BaseProvider
-
 
 class GeminiProvider(BaseProvider):
     def __init__(self, api_key):
@@ -10,12 +9,21 @@ class GeminiProvider(BaseProvider):
     def analyse(self, issue, files=None):
         print("FIXI: Sending request to Gemini...", flush=True)
 
-        response = self.client.interactions.create(
-            model="gemini-3.8-flash",
-            input=issue,
-            timeout=60
+        # Build contents list including the issue text and any attached files
+        contents = [issue]
+        if files:
+            contents.extend(files)
+
+        # Increase timeout or configure via HttpOptions if necessary, 
+        # and use the models generate_content API for robust payload handling
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",  # Update to a supported model version if needed
+            contents=contents,
+            config=types.GenerateContentConfig(
+                http_options=types.HttpOptions(timeout=120.0) # Extends timeout to 120 seconds
+            )
         )
 
         print("FIXI: Gemini response received!", flush=True)
 
-        return response.output_text
+        return response.text
