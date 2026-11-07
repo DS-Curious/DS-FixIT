@@ -13,7 +13,7 @@ class GeminiProvider(BaseProvider):
         response = self.client.interactions.create(
             model="gemini-3.8-flash",
             input=issue,
-            timeout=15
+            timeout=60
         )
 
         print("FIXI: Gemini response received!", flush=True)
