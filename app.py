@@ -9,6 +9,7 @@ st.set_page_config(
 )
 
 st.title("⚡ DS-FixIT")
+st.caption("DEBUG BUILD: FIXIT-1107-A")
 st.subheader("Universal AI Problem Detector")
 st.markdown("### Detect. Analyse. Fix.")
 
