@@ -1,56 +1,52 @@
 
 import streamlit as st
+from providers.gemini import GeminiProvider
 
 st.set_page_config(
-    page_title="DS-FixIT | Universal AI Problem Detector",
+    page_title="DS-FixIT",
     page_icon="⚡",
     layout="wide"
 )
 
-# Header
 st.title("⚡ DS-FixIT")
 st.subheader("Universal AI Problem Detector")
 st.markdown("### Detect. Analyse. Fix.")
+
 st.caption("Created by J.P. Dheepak Saianand")
 
 st.divider()
 
-# Issue submission
-st.header("🔍 What's the problem?")
+st.header("🔍 Submit your issue")
 
-st.write(
-    "Upload evidence or describe any issue. "
-    "DS-FixIT will analyse it and help find a solution."
+description = st.text_area(
+    "Describe your problem",
+    placeholder="What's happening?"
 )
 
-issue_text = st.text_area(
-    "Describe your issue (optional)",
-    placeholder="Explain what's happening..."
+files = st.file_uploader(
+    "Upload evidence",
+    accept_multiple_files=True
 )
 
-uploaded_files = st.file_uploader(
-    "Upload images, audio, documents or other files",
-    accept_multiple_files=True,
-    help="You can upload multiple files."
-)
+if st.button("Analyse Issue", type="primary"):
 
-if st.button("🔎 Analyse Issue", type="primary"):
-    if not issue_text.strip() and not uploaded_files:
-        st.warning("Please describe an issue or upload a file.")
+    if not description.strip() and not files:
+        st.warning("Please describe or upload an issue.")
+
     else:
-        st.session_state["pending_issue"] = {
-            "description": issue_text,
-            "files": uploaded_files
-        }
-        st.success("Issue submitted successfully!")
-        st.info(
-            "Analysis engine integration is the next development step."
-        )
+        try:
+            with st.spinner("FIXI is analysing your issue..."):
+                ai = GeminiProvider(
+                    st.secrets["GEMINI_API_KEY"]
+                )
 
-st.divider()
+                result = ai.analyse(
+                    description,
+                    files
+                )
 
-# FIXI placeholder
-st.header("✨ Meet FIXI")
-st.write(
-    "Your polite, honest and supportive AI companion."
-)
+            st.subheader("🔎 Analysis Results")
+            st.markdown(result)
+
+        except Exception as e:
+            st.error(f"Analysis failed: {e}")
