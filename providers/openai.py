@@ -1,4 +1,7 @@
-class OpenAIProvider:
+from providers.base import BaseProvider
+
+
+class OpenAIProvider(BaseProvider):
     def __init__(self, api_key):
         self.api_key = api_key
 
