@@ -1,5 +1,6 @@
 
 from google import genai
+from google.genai import types
 from providers.base import BaseProvider
 
 
@@ -7,18 +8,20 @@ class GeminiProvider(BaseProvider):
     def __init__(self, api_key):
         self.client = genai.Client(api_key=api_key)
 
-    def analyse(self, issue):
+    def analyse(self, issue, files=None):
+        contents = [issue]
+
+        for file in files or []:
+            contents.append(
+                types.Part.from_bytes(
+                    data=file.getvalue(),
+                    mime_type=file.type
+                )
+            )
+
         response = self.client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=f"""
-            You are DS-FixIT, a Universal AI Problem Detector.
-
-            Detect the issue, analyse possible causes,
-            suggest solutions and prevention methods.
-
-            Issue:
-            {issue}
-            """
+            contents=contents
         )
 
         return response.text
