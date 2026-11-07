@@ -43,9 +43,12 @@ class GeminiProvider(BaseProvider):
             response = self.client.models.generate_content(
                 model="gemini-3.8-flash",
                 contents=contents,
-                config=types.GenerateContentConfig(
-                    max_output_tokens=2048
-                )
+               config=types.GenerateContentConfig(
+    max_output_tokens=1024,
+    thinking_config=types.ThinkingConfig(
+        thinking_level="LOW"
+    )
+)
             )
 
             print(
