@@ -7,9 +7,14 @@ class GeminiProvider(BaseProvider):
         self.client = genai.Client(api_key=api_key)
 
     def analyse(self, issue, files=None):
-        response = self.client.interactions.create(
-            model="gemini-3.8-flash",
-            input=issue
-        )
+    print("FIXI: Sending request to Gemini...", flush=True)
 
-        return response.output_text
+    response = self.client.interactions.create(
+        model="gemini-3.8-flash",
+        input=issue,
+        timeout=15
+    )
+
+    print("FIXI: Gemini response received!", flush=True)
+
+    return response.output_text
