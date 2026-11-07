@@ -9,10 +9,8 @@ st.set_page_config(
 )
 
 st.title("⚡ DS-FixIT")
-st.caption("DEBUG BUILD: FIXIT-1107-A")
 st.subheader("Universal AI Problem Detector")
 st.markdown("### Detect. Analyse. Fix.")
-
 st.caption("Created by J.P. Dheepak Saianand")
 
 st.divider()
@@ -30,7 +28,7 @@ files = st.file_uploader(
 )
 
 if st.button("Analyse Issue", type="primary"):
-        st.write("DEBUG: Analyse button clicked")
+    st.write("DEBUG: Analyse button clicked")
 
     if not description.strip() and not files:
         st.warning("Please describe or upload an issue.")
