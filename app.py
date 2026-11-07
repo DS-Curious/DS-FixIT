@@ -50,3 +50,22 @@ if st.button("Analyse Issue", type="primary"):
 
         except Exception as e:
             st.error(f"Analysis failed: {e}")
+
+import requests
+import time
+
+st.write("FIXI: Checking Google connectivity...")
+
+try:
+    start = time.time()
+
+    r = requests.get(
+        "https://generativelanguage.googleapis.com",
+        timeout=10
+    )
+
+    st.write("Google reachable:", r.status_code)
+    st.write("Time:", round(time.time() - start, 2), "seconds")
+
+except Exception as e:
+    st.error(f"Network diagnostic failed: {repr(e)}")
