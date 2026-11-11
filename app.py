@@ -7,7 +7,7 @@ from openai import OpenAI
 
 st.set_page_config(
     page_title="DS-FixIT | Universal AI",
-    page_icon="⚡",
+    page_icon="⭐",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -42,7 +42,7 @@ st.markdown("""
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-name: 1px;
+    letter-spacing: 1px;
 }
 
 .subtitle {
@@ -74,15 +74,13 @@ div.stButton > button:hover {
     box-shadow: 0 8px 32px rgba(0, 119, 182, 0.08);
 }
 
-.fixi-banner {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: rgba(255, 255, 255, 0.7);
-    padding: 15px;
-    border-radius: 16px;
-    border: 1px solid #b5e2fa;
-    margin-bottom: 20px;
+.tech-badge {
+    background: #00b4d8;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -98,41 +96,51 @@ if "messages" not in st.session_state:
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
-# ---------------- SIDEBAR (TECHY & FIXI ANIME PROFILE) ----------------
+# ---------------- SIDEBAR (TECHY & FIXI PROFILE) ----------------
 
 with st.sidebar:
-    st.markdown("## ⚡ DS-FixIT")
+    st.markdown("## ⭐ DS-FixIT")
     st.caption("Universal AI Problem Detector • v2.6")
 
     st.divider()
 
     st.toggle("🌙 Dark mode", key="dark_mode")
 
-    # Multilingual Selector
-    st.markdown("### 🌍 Language")
-    selected_language = st.selectbox(
-        "Response Language",
-        ["English", "Tamil", "Hindi", "Spanish", "French", "German", "Mandarin", "Japanese"],
-        label_visibility="collapsed"
-    )
-
     st.divider()
 
-    # FIXI Companion Profile (Waguri Kaoruko Vibe - Polite, Honest, Caring)
-    st.markdown("### 🌸 FIXI Companion")
+    # FIXI Companion Profile
+    st.markdown("### 🤖 FIXI Companion")
     
-    # Visual representation card for FIXI (Anime Companion Vibe)
     st.markdown("""
-    <div style="background: rgba(0, 180, 216, 0.1); padding: 12px; border-radius: 12px; text-align: center; border: 1px dashed #00b4d8;">
-        <span style="font-size: 32px;">✨🌸✨</span><br>
-        <b style="color: #0077b6;">FIXI</b><br>
-        <span style="font-size: 12px; color: #555;"><i>"Always here to help with a smile!"</i></span><br>
-        <span style="font-size: 11px; background: #e9c46a; padding: 2px 6px; border-radius: 6px; color: #333; font-weight: bold;">Honest • Polite</span>
+    <div style="background: rgba(0, 180, 216, 0.12); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #00b4d8;">
+        <span style="font-size: 36px;">⭐</span><br>
+        <b style="color: #0077b6; font-size: 18px;">FIXI</b><br>
+        <span style="font-size: 12px; color: #555;"><i>Universal AI Companion</i></span><br><br>
+        <span class="tech-badge">Honest</span> 
+        <span class="tech-badge">Polite</span> 
+        <span class="tech-badge">Accurate</span>
     </div>
     """, unsafe_allow_html=True)
 
     st.write("")
-    st.caption("Mode: Universal Diagnostic & Tech Support")
+    st.caption("Mode: Universal Diagnostic & Support")
+
+    st.divider()
+
+    # Specialized Feature Modes
+    st.markdown("### 🛠️ Specialized Solvers")
+    solver_mode = st.selectbox(
+        "Select Domain Solver Mode",
+        [
+            "General Problem Solver",
+            "Code Doctor & Syntax Repair",
+            "Math & Equation Solver",
+            "Plant & Flora Doctor",
+            "Home & Hardware Fixer",
+            "Data & Log File Inspector",
+            "Writing & Text Doctor"
+        ]
+    )
 
     st.divider()
 
@@ -155,7 +163,7 @@ with st.sidebar:
     with st.expander("ℹ️ About DS-FixIT & Creator"):
         st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
         st.write("**Creator:** J.P. Dheepak Saianand")
-        st.write("**Companion:** FIXI (Anime-inspired assistant)")
+        st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- DARK MODE OVERRIDE (HIGH READABILITY CONTRAST) ----------------
@@ -181,7 +189,6 @@ if st.session_state.dark_mode:
     .subtitle {
         color: #4ade80 !important;
     }
-    /* Ensure all markdown/text elements remain high contrast in dark mode */
     p, label, span, h1, h2, h3, h4, h5, h6 {
         color: #f8fafc !important;
     }
@@ -191,18 +198,18 @@ if st.session_state.dark_mode:
 # ---------------- HEADER ----------------
 
 st.markdown(
-    '<div class="main-title">DS-FixIT ⚡</div>',
+    '<div class="main-title">DS-FixIT ⭐</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">Universal AI Problem Detector • Powered by FIXI</div>',
+    '<div class="subtitle">Universal AI Problem Detector • Active Mode: ' + solver_mode + '</div>',
     unsafe_allow_html=True
 )
 
 st.write(
-    "Detect code bugs, plant diseases, math equations, audio clips, images, or home hardware faults instantly. "
-    "FIXI is ready to assist you accurately and honestly."
+    "Identify bugs, hardware failures, plant conditions, mathematical steps, sound logs, or errors. "
+    "FIXI is ready to assist with clear analysis and verified recommendations."
 )
 
 st.divider()
@@ -222,8 +229,8 @@ with col_desc:
 
 with col_extra:
     additional_info = st.text_area(
-        "Additional Information (Optional context)",
-        placeholder="Provide environmental factors, OS, previous attempts, symptoms...",
+        "Additional Information (Optional Context)",
+        placeholder="Provide environmental factors, OS, previous attempts, error logs...",
         height=140
     )
 
@@ -250,7 +257,7 @@ if uploaded_files:
         with c2:
             note = st.text_input(
                 f"Optional extra note for {file.name}",
-                placeholder="e.g. Highlight line 42 or audio timestamp 0:15...",
+                placeholder="e.g. Error starts at line 45 or timestamp 0:15...",
                 key=f"note_{file.name}"
             )
             if note:
@@ -259,7 +266,7 @@ if uploaded_files:
 # ---------------- ANALYSIS ENGINE ----------------
 
 if st.button(
-    "⚡ ANALYSE WITH FIXI",
+    "⭐ ANALYSE WITH FIXI",
     type="primary",
     use_container_width=True
 ):
@@ -279,13 +286,13 @@ if st.button(
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = f"""
-You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT (Universal AI Problem Detector).
-Your character design and tone reflect a sweet, diligent anime assistant (similar to Waguri Kaoruko)—always earnest, extremely polite, never pretending absolute certainty, and highly thorough.
+You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).
+Mode Selected: {solver_mode}
 
-CORE GUIDELINES:
-- Response Language: {selected_language}
-- Never claim a diagnosis is 100% absolutely accurate; distinguish confirmed facts from high-probability hypotheses.
-- Include safety precautions when relevant (e.g. electrical, mechanical, chemical).
+Core Principles:
+- Be honest, polite, and thorough.
+- Never claim absolute certainty; clearly state confidence ratings.
+- Include safety precautions when hardware, electrical, or physical safety is involved.
 
 USER PROBLEM DESCRIPTION:
 {description}
@@ -299,13 +306,14 @@ ATTACHED FILE NOTES:
 Analyze all supplied inputs comprehensively using this exact structure:
 
 ## 1. Problem Identification & Summary
-## 2. Observations, Evidence & Image/Audio Breakdown
-## 3. Probable Root Causes
-## 4. Recommended Step-by-Step Solutions / Patches
-## 5. Prevention & Best Practices
-## 6. Severity Assessment (Low / Medium / High / Critical)
-## 7. Confidence Level & Limitations (Honest appraisal)
-## 8. Clarifying Questions for the User
+## 2. Observations, Evidence & Breakdown
+## 3. Probable Root Causes (Root Cause Map)
+## 4. Recommended Step-by-Step Solutions
+## 5. FIXI VERIFY & Safety Check
+## 6. Prevention & Best Practices
+## 7. Severity Rating (Low / Medium / High / Critical)
+## 8. Confidence Level & Limitations
+## 9. Follow-up Questions
 """
 
             content = [
@@ -315,7 +323,6 @@ Analyze all supplied inputs comprehensively using this exact structure:
                 }
             ]
 
-            # Append images for multi-modal processing
             for file in uploaded_files:
                 if file.type.startswith("image/"):
                     encoded = base64.b64encode(file.getvalue()).decode("utf-8")
@@ -336,7 +343,12 @@ Analyze all supplied inputs comprehensively using this exact structure:
                     except Exception:
                         pass
 
-            with st.spinner("🌸 FIXI is carefully examining your problem and evidence..."):
+            # Thinking Interface Expander
+            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
+                st.write("🔍 Parsing input description and attached files...")
+                time.sleep(0.4)
+                st.write("📊 Evaluating potential failure modes and root causes...")
+                
                 response = client.chat.completions.create(
                     model="openrouter/free",
                     messages=[
@@ -348,6 +360,8 @@ Analyze all supplied inputs comprehensively using this exact structure:
                 )
 
                 result = response.choices[0].message.content
+                st.write("✅ Diagnosis generated successfully!")
+                status.update(label="⚡ Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
 
@@ -408,16 +422,16 @@ if question:
         try:
             client = OpenAI(
                 base_url="https://openrouter.ai/api/v1",
-                api_key=api_key if 'api_key' in locals() else st.secrets["OPENROUTER_APIKEY"]
+                api_key=st.secrets["OPENROUTER_APIKEY"]
             )
 
             conversation = [
                 {
                     "role": "system",
                     "content": (
-                        f"You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT, inspired by polite anime assistants like Waguri Kaoruko. "
-                        f"Answer follow-up questions in {selected_language} using the diagnostic context below. "
-                        "Always admit uncertainty when evidence is incomplete and maintain an encouraging, respectful tone."
+                        "You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT. "
+                        "Answer follow-up questions using the diagnostic context below. "
+                        "Admit uncertainty when evidence is incomplete and remain polite and clear."
                     )
                 },
                 {
@@ -428,7 +442,7 @@ if question:
 
             conversation.extend(st.session_state.messages[-10:])
 
-            with st.spinner("🌸 FIXI is typing a response..."):
+            with st.spinner("⭐ FIXI is typing a response..."):
                 response = client.chat.completions.create(
                     model="openrouter/free",
                     messages=conversation
