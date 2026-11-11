@@ -200,6 +200,17 @@ if st.session_state.dark_mode:
     p, label, span, h1, h2, h3, h4, h5, h6 {
         color: #f9fafb !important;
     }
+    /* FIX FOR DARK MODE TEXT BOXES & INPUTS */
+    input, textarea, [data-baseweb="input"] div, [data-baseweb="base-input"], [data-baseweb="textarea"] {
+        background-color: #1e293b !important;
+        color: #f9fafb !important;
+        border-color: #334155 !important;
+    }
+    /* Placeholder text visibility in dark mode */
+    ::placeholder {
+        color: #94a3b8 !important;
+        opacity: 1 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
