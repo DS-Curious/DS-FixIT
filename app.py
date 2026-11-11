@@ -1,14 +1,12 @@
 
 import streamlit as st
-import requests
 import base64
-import mimetypes
 import time
-import re
+import html
 from openai import OpenAI
 
 # ==========================================
-# DS-FIXIT | UNIVERSAL AI v4.0
+# DS-FIXIT | UNIVERSAL AI v4.1
 # ==========================================
 
 st.set_page_config(
@@ -19,184 +17,267 @@ st.set_page_config(
 )
 
 # ==========================================
-# DESIGN SYSTEM
+# SESSION STATE
 # ==========================================
 
-st.markdown("""
-<style>
-
-/* MAIN APP */
-
-.stApp {
-    background: linear-gradient(
-        135deg,
-        var(--background-color),
-        var(--secondary-background-color)
-    );
+defaults = {
+    "history": [],
+    "messages": [],
+    "dark_mode": False,
+    "fixi_mood": "🚀 Online & Ready",
+    "latest_result": None,
+    "latest_mode": "General Problem Solver"
 }
 
-/* HEADER */
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
-.main-title {
-    font-size: 48px;
+
+# ==========================================
+# THEME COLORS
+# ==========================================
+
+if st.session_state.dark_mode:
+    BG = "#090d16"
+    PANEL = "#172338"
+    TEXT = "#f1f5f9"
+    MUTED = "#a8b5c7"
+    BORDER = "#334155"
+    INPUT = "#1e293b"
+else:
+    BG = "#f0f8ff"
+    PANEL = "#ffffff"
+    TEXT = "#172033"
+    MUTED = "#64748b"
+    BORDER = "#cbdff0"
+    INPUT = "#ffffff"
+
+
+# ==========================================
+# COMPLETE THEME STYLING
+# ==========================================
+
+st.markdown(f"""
+<style>
+
+/* MAIN APPLICATION */
+
+.stApp {{
+    background: {BG} !important;
+    color: {TEXT} !important;
+}}
+
+[data-testid="stHeader"] {{
+    background: transparent !important;
+}}
+
+[data-testid="stSidebar"] {{
+    background: {PANEL} !important;
+    border-right: 1px solid {BORDER} !important;
+}}
+
+/* TEXT */
+
+html, body, p, label, li,
+h1, h2, h3, h4, h5, h6 {{
+    color: {TEXT};
+}}
+
+.stCaption, small {{
+    color: {MUTED} !important;
+}}
+
+/* MAIN TITLE */
+
+.main-title {{
+    font-size: 46px;
     font-weight: 900;
-    background: linear-gradient(
-        90deg,
-        #009fff,
-        #ec2f4b
-    );
+    background: linear-gradient(90deg,#009fff,#ec2f4b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 1px;
-}
+}}
 
-.subtitle {
+.subtitle {{
     font-size: 18px;
     font-weight: 600;
-}
+    color: {MUTED} !important;
+}}
+
+/* INPUTS */
+
+.stTextInput input,
+.stTextArea textarea,
+[data-baseweb="select"] > div {{
+    background: {INPUT} !important;
+    color: {TEXT} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 10px !important;
+}}
+
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {{
+    color: {MUTED} !important;
+    opacity: 1 !important;
+}}
 
 /* BUTTONS */
 
 .stButton > button,
-.stDownloadButton > button {
-    border-radius: 12px;
-    font-weight: 700;
-    transition: all 0.2s ease;
-}
+.stDownloadButton > button {{
+    border-radius: 11px !important;
+    font-weight: 700 !important;
+    border: 1px solid #009fff !important;
+    transition: 0.2s ease !important;
+}}
 
 .stButton > button:hover,
-.stDownloadButton > button:hover {
+.stDownloadButton > button:hover {{
+    border-color: #ec2f4b !important;
     transform: translateY(-2px);
-}
-
-/* RESULT CARDS */
-
-.result-card {
-    padding: 24px;
-    border-radius: 18px;
-    border: 1px solid var(--border-color);
-    background: var(--secondary-background-color);
-    margin: 14px 0;
-}
-
-/* IMPORTANT DIAGNOSTIC HIGHLIGHTS */
-
-.diagnostic-risk {
-    border-left: 6px solid #ef4444;
-    background: rgba(239, 68, 68, 0.10);
-    padding: 16px;
-    border-radius: 10px;
-    margin: 14px 0;
-}
-
-.diagnostic-cause {
-    border-left: 6px solid #f59e0b;
-    background: rgba(245, 158, 11, 0.10);
-    padding: 16px;
-    border-radius: 10px;
-    margin: 14px 0;
-}
-
-.diagnostic-solution {
-    border-left: 6px solid #22c55e;
-    background: rgba(34, 197, 94, 0.10);
-    padding: 16px;
-    border-radius: 10px;
-    margin: 14px 0;
-}
-
-.diagnostic-verify {
-    border-left: 6px solid #009fff;
-    background: rgba(0, 159, 255, 0.10);
-    padding: 16px;
-    border-radius: 10px;
-    margin: 14px 0;
-}
-
-/* REPORT TYPOGRAPHY */
-
-.report-content h2 {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
-    margin-top: 28px;
-}
-
-.report-content h3 {
-    margin-top: 20px;
-}
-
-.report-content li {
-    margin-bottom: 8px;
-    line-height: 1.7;
-}
-
-.report-content p {
-    line-height: 1.75;
-}
-
-.report-content pre {
-    border-radius: 12px;
-    padding: 16px;
-    overflow-x: auto;
-}
-
-/* FIXI BADGES */
-
-.tech-badge {
-    display: inline-block;
-    background: #009fff;
-    color: white !important;
-    padding: 4px 9px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: bold;
-    margin: 2px;
-}
+}}
 
 /* UPLOADER */
 
-[data-testid="stFileUploader"] section {
-    border-radius: 12px;
-    border: 1px dashed #009fff;
-}
+[data-testid="stFileUploader"] section {{
+    background: {PANEL} !important;
+    border: 1px dashed #009fff !important;
+    border-radius: 12px !important;
+}}
 
-/* CHAT INPUT */
+[data-testid="stFileUploader"] section,
+[data-testid="stFileUploader"] section * {{
+    color: {TEXT} !important;
+}}
 
-[data-testid="stChatInput"] {
-    border-radius: 12px;
-}
+[data-testid="stFileUploader"] section button {{
+    background: #009fff !important;
+    color: white !important;
+}}
 
-/* SIDEBAR */
+/* EXPANDERS */
 
-[data-testid="stSidebar"] {
-    border-right: 1px solid var(--border-color);
-}
+[data-testid="stExpander"] {{
+    border: 1px solid {BORDER} !important;
+    border-radius: 12px !important;
+}}
 
-/* GENERAL SPACING */
+/* CHAT */
 
-div[data-testid="stVerticalBlock"] {
-    gap: 0.8rem;
-}
+[data-testid="stChatMessage"] {{
+    background: {PANEL} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 13px !important;
+    padding: 12px !important;
+}}
+
+[data-testid="stChatInput"] {{
+    background: transparent !important;
+}}
+
+[data-testid="stChatInput"] > div {{
+    background: {INPUT} !important;
+    border: 1px solid #009fff !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}}
+
+[data-testid="stChatInput"] textarea {{
+    background: transparent !important;
+    color: {TEXT} !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    caret-color: #009fff !important;
+}}
+
+[data-testid="stChatInput"] textarea::placeholder {{
+    color: {MUTED} !important;
+    opacity: 1 !important;
+}}
+
+[data-testid="stChatInput"] > div:focus-within {{
+    border: 1px solid #009fff !important;
+    box-shadow: 0 0 0 2px rgba(0,159,255,0.15) !important;
+}}
+
+[data-testid="stChatInput"] button {{
+    color: #009fff !important;
+}}
+
+/* REPORT PANEL */
+
+.result-card {{
+    background: {PANEL};
+    color: {TEXT};
+    border: 1px solid {BORDER};
+    border-radius: 16px;
+    padding: 22px;
+    margin: 12px 0;
+}}
+
+/* REPORT HIGHLIGHTS */
+
+.report-highlight {{
+    padding: 15px 18px;
+    border-radius: 10px;
+    margin: 14px 0;
+    color: {TEXT};
+}}
+
+.risk-highlight {{
+    background: rgba(239,68,68,0.12);
+    border-left: 5px solid #ef4444;
+}}
+
+.cause-highlight {{
+    background: rgba(245,158,11,0.12);
+    border-left: 5px solid #f59e0b;
+}}
+
+.solution-highlight {{
+    background: rgba(34,197,94,0.12);
+    border-left: 5px solid #22c55e;
+}}
+
+.verify-highlight {{
+    background: rgba(0,159,255,0.12);
+    border-left: 5px solid #009fff;
+}}
+
+.report-content h1,
+.report-content h2 {{
+    border-bottom: 1px solid {BORDER};
+    padding-bottom: 9px;
+    margin-top: 26px;
+}}
+
+.report-content p,
+.report-content li {{
+    line-height: 1.75;
+}}
+
+.report-content pre {{
+    background: {INPUT};
+    border: 1px solid {BORDER};
+    padding: 14px;
+    border-radius: 10px;
+    overflow-x: auto;
+}}
+
+.tech-badge {{
+    display: inline-block;
+    background: #009fff;
+    color: white !important;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: bold;
+}}
 
 </style>
 """, unsafe_allow_html=True)
-
-
-# ==========================================
-# SESSION STATE
-# ==========================================
-
-if "history" not in st.session_state:
-    st.session_state.history = []
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "fixi_mood" not in st.session_state:
-    st.session_state.fixi_mood = "🚀 Online & Ready"
-
-if "latest_result" not in st.session_state:
-    st.session_state.latest_result = None
 
 
 # ==========================================
@@ -206,40 +287,43 @@ if "latest_result" not in st.session_state:
 with st.sidebar:
 
     st.markdown("## 🚀 DS-FixIT")
-
-    st.caption("Universal AI Problem Detector • v4.0")
+    st.caption("Universal AI Problem Detector • v4.1")
 
     st.divider()
 
+    st.toggle(
+        "🌙 Dark mode",
+        key="dark_mode"
+    )
+
+    st.divider()
+
+    # Native Streamlit elements for FIXI logo.
+    # No custom HTML or SVG that can display as source code.
+
     st.markdown("### 🤖 FIXI Companion")
 
-    st.markdown(f"""
-    <div style="
-        background: rgba(0,159,255,0.10);
-        padding: 18px;
-        border-radius: 14px;
-        text-align: center;
-        border: 1px solid #009fff;
-    ">
-        <div style="font-size: 42px;">🔮</div>
+    st.markdown(
+        "<div style='text-align:center;font-size:54px;'>🔮</div>",
+        unsafe_allow_html=True
+    )
 
-        <div style="
-            color: #009fff;
-            font-size: 21px;
-            font-weight: 900;
-        ">FIXI</div>
+    st.markdown(
+        "<div style='text-align:center;color:#009fff;"
+        "font-size:24px;font-weight:900;'>FIXI</div>",
+        unsafe_allow_html=True
+    )
 
-        <div style="font-size: 12px;">
-            Status: {st.session_state.fixi_mood}
-        </div>
+    st.caption(
+        f"Status: {st.session_state.fixi_mood}"
+    )
 
-        <br>
-
-        <span class="tech-badge">Honest</span>
-        <span class="tech-badge">Polite</span>
-        <span class="tech-badge">Multi-Perspective</span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<span class="tech-badge">Honest</span> '
+        '<span class="tech-badge">Polite</span> '
+        '<span class="tech-badge">Multi-Perspective</span>',
+        unsafe_allow_html=True
+    )
 
     st.divider()
 
@@ -260,13 +344,15 @@ with st.sidebar:
         ]
     )
 
+    st.session_state.latest_mode = solver_mode
+
     st.divider()
 
     st.markdown("### 🧠 FIXI Memory Vault")
 
     search_query = st.text_input(
         "🔍 Search past sessions",
-        placeholder="Search diagnostic history..."
+        placeholder="Search keywords..."
     )
 
     if not st.session_state.history:
@@ -279,7 +365,10 @@ with st.sidebar:
             item for item in st.session_state.history
             if search_query.lower() in item["title"].lower()
             or search_query.lower() in item["result"].lower()
-        ] if search_query else st.session_state.history
+        ]
+
+        if not search_query:
+            filtered_history = st.session_state.history
 
         for i, item in enumerate(
             reversed(filtered_history[-10:])
@@ -292,25 +381,23 @@ with st.sidebar:
             ):
 
                 st.session_state.latest_result = item["result"]
-
+                st.session_state.latest_mode = item["mode"]
+                st.session_state.messages = []
                 st.rerun()
 
     st.divider()
 
-    with st.expander("ℹ️ About DS-FixIT & Creator"):
+    with st.expander("ℹ️ About DS-FixIT"):
 
         st.write(
-            "**DS-FixIT** is a universal multi-modal AI "
-            "problem detector powered by advanced AI."
+            "DS-FixIT is a universal AI problem detector "
+            "powered by AI reasoning and multimodal analysis."
         )
 
         st.write("**Creator:** J.P. Dheepak Saianand")
-
         st.write("**Companion:** FIXI")
 
-        st.caption(
-            "DS-FixIT © 2026 • Built with Streamlit & OpenRouter"
-        )
+        st.caption("DS-FixIT © 2026")
 
 
 # ==========================================
@@ -330,15 +417,16 @@ st.markdown(
 )
 
 st.write(
-    "Your universal AI problem detector. Diagnose code, "
-    "mathematics, hardware, plants, writing, data, sound "
-    "and study problems with FIXI."
+    "Detect code errors, mathematical problems, study "
+    "queries, hardware faults, plant diseases, data issues, "
+    "sound anomalies, and writing problems with FIXI."
 )
 
 st.divider()
 
+
 # ==========================================
-# INPUT & EVIDENCE SECTION
+# PROBLEM INPUT
 # ==========================================
 
 st.markdown("## 🚀 What's the problem today?")
@@ -346,32 +434,43 @@ st.markdown("## 🚀 What's the problem today?")
 col_desc, col_extra = st.columns(2)
 
 with col_desc:
+
     description = st.text_area(
         "Describe your problem",
-        placeholder="Explain what's happening or paste code, equations, errors...",
-        height=150
+        placeholder=(
+            "Explain what's happening or paste code, "
+            "equations, or error messages..."
+        ),
+        height=150,
+        key="problem_description"
     )
 
 with col_extra:
+
     additional_info = st.text_area(
         "Additional Information (Optional Context)",
-        placeholder="OS, device, environment, previous attempts, error logs...",
-        height=150
+        placeholder=(
+            "OS, device, environmental factors, "
+            "previous attempts, or error logs..."
+        ),
+        height=150,
+        key="additional_information"
     )
 
 
 # ==========================================
-# FILE UPLOAD
+# EVIDENCE UPLOAD
 # ==========================================
 
 uploaded_files = st.file_uploader(
-    "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
+    "📎 Upload Evidence",
     type=[
         "png", "jpg", "jpeg", "webp",
         "pdf", "txt", "csv", "py", "json",
         "mp3", "wav", "m4a"
     ],
-    accept_multiple_files=True
+    accept_multiple_files=True,
+    key="evidence_upload"
 )
 
 file_notes = {}
@@ -382,123 +481,190 @@ if uploaded_files:
 
     for file in uploaded_files:
 
-        c1, c2 = st.columns([1, 2])
+        col1, col2 = st.columns([1, 2])
 
-        with c1:
+        with col1:
 
             if file.type.startswith("image/"):
+
                 st.image(
                     file,
                     caption=file.name,
                     width=160
                 )
+
             else:
+
                 st.write(
-                    f"📁 **{file.name}** ({file.type or 'file'})"
+                    f"📁 **{file.name}**"
                 )
 
-        with c2:
+                st.caption(
+                    file.type or "Unknown file type"
+                )
+
+        with col2:
 
             note = st.text_input(
                 f"Extra note for {file.name}",
-                placeholder="Describe relevant details...",
-                key=f"note_{file.name}"
+                placeholder="Describe important details...",
+                key=f"file_note_{file.name}"
             )
 
             if note:
                 file_notes[file.name] = note
 
-
 # ==========================================
-# REPORT HIGHLIGHTING ENGINE
+# REPORT FORMATTER
 # ==========================================
 
-def highlight_report(report):
+def render_diagnostic_report(report):
+
+    """
+    Safely renders FIXI's Markdown report.
+    Important sections receive visual highlighting.
+    """
 
     lines = report.splitlines()
 
-    formatted = []
+    output = []
+    current_block = []
+    current_type = None
 
-    for line in lines:
+    def flush_block():
 
-        clean = line.strip()
-        lower = clean.lower()
+        nonlocal current_block, current_type
 
-        # RISK / SEVERITY
+        if not current_block:
+            return
 
-        if (
-            "risk level" in lower
-            or "severity rating" in lower
-            or "severity:" in lower
-            or "critical risk" in lower
-            or "high risk" in lower
-        ):
+        block_text = "\n".join(current_block)
 
-            formatted.append(
-                '<div class="diagnostic-risk">'
-                '<strong>🚨 RISK & SEVERITY</strong><br>'
-                + clean +
+        safe_text = html.escape(block_text)
+
+        if current_type == "risk":
+
+            output.append(
+                '<div class="report-highlight risk-highlight">'
+                '<strong>🚨 RISK & SEVERITY</strong>'
+                f'<pre style="white-space:pre-wrap;'
+                f'font-family:inherit;border:0;'
+                f'background:transparent;">{safe_text}</pre>'
                 '</div>'
             )
 
-        # ROOT CAUSE
+        elif current_type == "cause":
 
-        elif (
-            "root cause" in lower
-            or "underlying cause" in lower
-            or "primary cause" in lower
-            or "cause:" in lower
-        ):
-
-            formatted.append(
-                '<div class="diagnostic-cause">'
-                '<strong>🔎 ROOT CAUSE</strong><br>'
-                + clean +
+            output.append(
+                '<div class="report-highlight cause-highlight">'
+                '<strong>🔎 ROOT CAUSE</strong>'
+                f'<pre style="white-space:pre-wrap;'
+                f'font-family:inherit;border:0;'
+                f'background:transparent;">{safe_text}</pre>'
                 '</div>'
             )
 
-        # SOLUTIONS
+        elif current_type == "solution":
 
-        elif (
-            "recommended solution" in lower
-            or "recommended fix" in lower
-            or "solution:" in lower
-            or "step-by-step solutions" in lower
-            or "recommended step" in lower
-        ):
-
-            formatted.append(
-                '<div class="diagnostic-solution">'
-                '<strong>🛠️ SOLUTION</strong><br>'
-                + clean +
+            output.append(
+                '<div class="report-highlight solution-highlight">'
+                '<strong>🛠️ RECOMMENDED SOLUTION</strong>'
+                f'<pre style="white-space:pre-wrap;'
+                f'font-family:inherit;border:0;'
+                f'background:transparent;">{safe_text}</pre>'
                 '</div>'
             )
 
-        # VERIFICATION / SAFETY
+        elif current_type == "verify":
 
-        elif (
-            "fixi verify" in lower
-            or "safety check" in lower
-            or "verification:" in lower
-        ):
-
-            formatted.append(
-                '<div class="diagnostic-verify">'
-                '<strong>🛡️ FIXI VERIFY</strong><br>'
-                + clean +
+            output.append(
+                '<div class="report-highlight verify-highlight">'
+                '<strong>🛡️ FIXI VERIFICATION</strong>'
+                f'<pre style="white-space:pre-wrap;'
+                f'font-family:inherit;border:0;'
+                f'background:transparent;">{safe_text}</pre>'
                 '</div>'
             )
 
         else:
 
-            formatted.append(line)
+            output.append(
+                f'<pre style="white-space:pre-wrap;'
+                f'font-family:inherit;">{safe_text}</pre>'
+            )
 
-    return "\n".join(formatted)
+        current_block = []
+        current_type = None
+
+    for line in lines:
+
+        lower = line.strip().lower()
+
+        # Detect important sections
+
+        if any(term in lower for term in [
+            "risk level",
+            "severity rating",
+            "risk & severity",
+            "critical risk",
+            "high risk"
+        ]):
+
+            flush_block()
+            current_type = "risk"
+
+        elif any(term in lower for term in [
+            "root cause",
+            "primary cause",
+            "underlying cause",
+            "cause analysis"
+        ]):
+
+            flush_block()
+            current_type = "cause"
+
+        elif any(term in lower for term in [
+            "recommended solution",
+            "recommended solutions",
+            "step-by-step solutions",
+            "recommended fixes",
+            "solution steps"
+        ]):
+
+            flush_block()
+            current_type = "solution"
+
+        elif any(term in lower for term in [
+            "fixi verify",
+            "verification",
+            "safety check"
+        ]):
+
+            flush_block()
+            current_type = "verify"
+
+        # A new numbered heading ends the previous section
+
+        elif (
+            line.strip().startswith("#")
+            and current_type is not None
+            and any(char.isdigit() for char in line[:6])
+        ):
+
+            flush_block()
+
+        current_block.append(line)
+
+    flush_block()
+
+    return "\n".join(output)
 
 
 # ==========================================
 # ANALYSIS ENGINE
 # ==========================================
+
+st.divider()
 
 if st.button(
     "🚀 ANALYSE WITH FIXI",
@@ -509,7 +675,7 @@ if st.button(
     if not description.strip() and not uploaded_files:
 
         st.warning(
-            "Please describe the problem or upload evidence."
+            "Please describe your problem or upload evidence."
         )
 
     else:
@@ -527,61 +693,71 @@ if st.button(
                 api_key=api_key
             )
 
-            notes_str = "\n".join([
-                f"- {fname}: {note}"
-                for fname, note in file_notes.items()
-            ])
+            notes_str = "\n".join(
+                f"- {name}: {note}"
+                for name, note in file_notes.items()
+            )
 
             prompt = f"""
-You are FIXI, the polite, honest, rigorous AI companion
-of DS-FixIT Universal AI Problem Detector.
+You are FIXI, the intelligent and rigorous AI
+companion of DS-FixIT Universal AI Problem Detector.
 
-Selected Solver Mode: {solver_mode}
+SELECTED SOLVER MODE:
+{solver_mode}
 
-IMPORTANT REPORT FORMATTING RULES:
+PERSONALITY:
+- Honest
+- Polite
+- Helpful
+- Technically rigorous
+- Clear and practical
 
-- Make the report easy to scan.
-- Use concise headings and bullet points.
-- Clearly identify the risk level.
-- Explain the actual root cause separately from symptoms.
-- Give practical, prioritized solutions.
-- Highlight urgent warnings.
-- Use clear language and avoid unnecessary repetition.
-- Never invent evidence.
-- State uncertainty and confidence honestly.
-- Include safety precautions when hardware, electrical,
-  medical, or physical safety is involved.
+IMPORTANT INSTRUCTIONS:
 
-USER PROBLEM DESCRIPTION:
+1. Analyze all supplied information carefully.
+2. Never invent observations or evidence.
+3. Distinguish symptoms from actual causes.
+4. Give a clear risk classification.
+5. Prioritize solutions by importance.
+6. Explain why each recommended solution works.
+7. Include appropriate safety precautions.
+8. Clearly state uncertainty and confidence.
+9. Do not claim that an action has been verified
+   unless actual verification evidence exists.
+10. Adapt your analysis to the selected solver mode.
+
+USER PROBLEM:
 {description}
 
-ADDITIONAL INFORMATION:
+ADDITIONAL CONTEXT:
 {additional_info}
 
 ATTACHED FILE NOTES:
 {notes_str if notes_str else "None provided."}
 
-Produce the diagnostic report using this structure:
+GENERATE THE REPORT USING THIS STRUCTURE:
 
 # 1. Problem Identification & Summary
 
-Give a concise explanation of the problem.
+Provide a short, clear explanation of the problem.
 
 # 2. Observations & Evidence
 
-List the important observations and evidence.
+List the important findings from the supplied evidence.
 
 # 3. Risk Level & Severity
 
-Clearly state:
-- Risk level: LOW / MEDIUM / HIGH / CRITICAL
+Include:
+
+- Risk Level: LOW / MEDIUM / HIGH / CRITICAL
 - Severity rating
-- Why this risk level applies
-- Immediate precautions, if necessary
+- Explanation of the risk
+- Immediate precautions if needed
 
 # 4. Root Cause Analysis
 
-Identify:
+Include:
+
 - Primary root cause
 - Contributing factors
 - Symptoms versus actual causes
@@ -589,38 +765,48 @@ Identify:
 
 # 5. Multi-Perspective Analysis
 
-Discuss:
+Consider:
+
 - Security
 - Performance
 - Reliability
-- Practical considerations
+- Practical impact
 
 # 6. Recommended Solutions
 
-Provide prioritized, numbered steps.
+Provide prioritized numbered solutions.
 
-For each solution include:
-- What to do
-- Why it works
+For each solution explain:
+
+- What needs to be done
+- Why it should work
 - Expected result
-- Relevant warnings
+- Any relevant warnings
 
-# 7. FIXI VERIFY & Safety Check
+# 7. FIXI Verify & Safety Check
 
-Explain how to verify the solution.
-Mention any remaining risks.
+Explain how the user can verify the proposed solution.
+Identify any remaining uncertainty.
 
 # 8. Prevention & Best Practices
 
-Provide useful preventive recommendations.
+Give practical prevention recommendations.
 
 # 9. Confidence & Limitations
 
-State confidence and missing evidence.
+State confidence level and missing information.
 
 # 10. Follow-up Questions
 
-Ask only relevant questions that would improve diagnosis.
+Ask relevant questions only when necessary.
+
+FORMATTING:
+
+Use readable Markdown.
+Use short paragraphs.
+Use bullets and numbered steps.
+Make important warnings noticeable.
+Avoid excessively long explanations.
 """
 
             content = [
@@ -630,7 +816,9 @@ Ask only relevant questions that would improve diagnosis.
                 }
             ]
 
-            # Process uploaded evidence
+            # ==================================
+            # PROCESS EVIDENCE
+            # ==================================
 
             for file in uploaded_files:
 
@@ -650,10 +838,10 @@ Ask only relevant questions that would improve diagnosis.
                     })
 
                 elif (
-                    file.type.startswith("text/")
-                    or file.name.endswith(
-                        (".py", ".json", ".csv", ".txt")
+                    file.name.lower().endswith(
+                        (".txt", ".py", ".json", ".csv")
                     )
+                    or file.type.startswith("text/")
                 ):
 
                     try:
@@ -674,35 +862,39 @@ Ask only relevant questions that would improve diagnosis.
                     except UnicodeDecodeError:
 
                         st.warning(
-                            f"Could not decode {file.name} as UTF-8."
+                            f"Unable to read {file.name} as UTF-8."
                         )
 
                 elif file.name.lower().endswith(".pdf"):
 
                     st.warning(
-                        f"{file.name}: PDF text extraction is not "
-                        "implemented in this version."
+                        f"{file.name}: PDF extraction requires "
+                        "a separate PDF processing library."
                     )
 
                 elif file.type.startswith("audio/"):
 
                     st.warning(
-                        f"{file.name}: Audio transcription is not "
-                        "implemented in this version."
+                        f"{file.name}: Audio transcription "
+                        "requires a transcription service."
                     )
 
-            # FIXI THINKING INTERFACE
+            # ==================================
+            # THINKING INTERFACE
+            # ==================================
 
             with st.status(
                 "🧠 FIXI is analyzing your problem...",
                 expanded=True
             ) as status:
 
-                st.write("🔍 Parsing description and evidence...")
+                st.write("🔍 Examining problem description...")
 
-                st.write("🗺️ Identifying possible root causes...")
+                st.write("📎 Processing supported evidence...")
 
-                st.write("🛠️ Constructing prioritized solutions...")
+                st.write("🗺️ Mapping potential root causes...")
+
+                st.write("🛠️ Preparing prioritized solutions...")
 
                 response = client.chat.completions.create(
                     model="openrouter/free",
@@ -717,6 +909,7 @@ Ask only relevant questions that would improve diagnosis.
                 result = response.choices[0].message.content
 
                 if not result:
+
                     raise ValueError(
                         "The AI returned an empty response."
                     )
@@ -727,9 +920,13 @@ Ask only relevant questions that would improve diagnosis.
                     expanded=False
                 )
 
-            # SAVE RESULT
+            # ==================================
+            # SAVE DIAGNOSTIC
+            # ==================================
 
             st.session_state.latest_result = result
+
+            st.session_state.latest_mode = solver_mode
 
             st.session_state.fixi_mood = (
                 "🎯 Ready for Next Task"
@@ -746,7 +943,8 @@ Ask only relevant questions that would improve diagnosis.
                         else "Diagnostic Session"
                     )
                 ),
-                "result": result
+                "result": result,
+                "mode": solver_mode
             })
 
             st.success(
@@ -775,28 +973,43 @@ if st.session_state.latest_result:
     st.markdown("## 🔍 FIXI Diagnostic Report")
 
     st.caption(
-        "Your diagnosis, visually organized for easier reading."
+        f"Analysis Mode: {st.session_state.latest_mode}"
     )
 
-    formatted_report = highlight_report(
+    st.markdown(
+        '<div class="result-card">',
+        unsafe_allow_html=True
+    )
+
+    # Render highlighted report
+
+    formatted_report = render_diagnostic_report(
         st.session_state.latest_result
     )
 
     st.markdown(
-        f'<div class="report-content">{formatted_report}</div>',
+        f'<div class="report-content">'
+        f'{formatted_report}'
+        f'</div>',
         unsafe_allow_html=True
     )
 
-    # DOWNLOAD OPTIONS
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ==================================
+    # DOWNLOAD REPORTS
+    # ==================================
 
     st.divider()
+
+    st.markdown("### 📥 Export Diagnostic Report")
 
     col1, col2 = st.columns(2)
 
     with col1:
 
         st.download_button(
-            "📥 Download Markdown Report",
+            "📥 Download Markdown",
             data=st.session_state.latest_result,
             file_name="DS-FixIT-Diagnostic-Report.md",
             mime="text/markdown",
@@ -805,10 +1018,7 @@ if st.session_state.latest_result:
 
     with col2:
 
-        st.download_button(
-            "📄 Download HTML Report",
-            data=f"""
-<!DOCTYPE html>
+        report_html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -816,25 +1026,33 @@ if st.session_state.latest_result:
 <style>
 body {{
     font-family: Arial, sans-serif;
-    max-width: 950px;
+    max-width: 900px;
     margin: 40px auto;
     padding: 25px;
     color: #172033;
     line-height: 1.7;
 }}
 h1 {{ color: #009fff; }}
+pre {{
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}}
 </style>
 </head>
 <body>
 <h1>DS-FixIT 🚀 Diagnostic Report</h1>
-<pre style="white-space:pre-wrap;font-family:inherit;">{
-    st.session_state.latest_result
-}</pre>
+<p><strong>Mode:</strong> {html.escape(st.session_state.latest_mode)}</p>
+<hr>
+<pre>{html.escape(st.session_state.latest_result)}</pre>
 <hr>
 <p>Generated by FIXI • DS-FixIT © 2026</p>
 </body>
 </html>
-""",
+"""
+
+        st.download_button(
+            "📄 Download HTML Report",
+            data=report_html,
             file_name="DS-FixIT-Diagnostic-Report.html",
             mime="text/html",
             use_container_width=True
@@ -855,64 +1073,7 @@ st.caption(
 
 
 # ==========================================
-# CHAT STYLING
-# ==========================================
-
-st.markdown("""
-<style>
-
-/* Chat messages */
-
-[data-testid="stChatMessage"] {
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
-    border: 1px solid var(--border-color);
-}
-
-/* Chat input */
-
-[data-testid="stChatInput"] {
-    background: var(--secondary-background-color) !important;
-    border-radius: 12px !important;
-}
-
-[data-testid="stChatInput"] > div {
-    background: var(--secondary-background-color) !important;
-    border: 1px solid #009fff !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-}
-
-[data-testid="stChatInput"] textarea {
-    color: var(--text-color) !important;
-    background: transparent !important;
-    caret-color: #009fff !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-[data-testid="stChatInput"] textarea::placeholder {
-    opacity: 0.7;
-}
-
-[data-testid="stChatInput"] > div:focus-within {
-    border: 1px solid #009fff !important;
-    box-shadow: 0 0 0 2px rgba(0,159,255,0.15) !important;
-    outline: none !important;
-}
-
-[data-testid="stChatInput"] button {
-    color: #009fff !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ==========================================
-# DISPLAY CHAT HISTORY
+# CHAT HISTORY DISPLAY
 # ==========================================
 
 for message in st.session_state.messages:
@@ -927,12 +1088,13 @@ for message in st.session_state.messages:
 # ==========================================
 
 question = st.chat_input(
-    "Ask FIXI a follow-up question..."
+    "Ask FIXI a follow-up question...",
+    key="fixi_chat_input"
 )
 
 
 # ==========================================
-# PROCESS FOLLOW-UP
+# FOLLOW-UP PROCESSING
 # ==========================================
 
 if question:
@@ -941,22 +1103,17 @@ if question:
 
         st.warning(
             "🚀 Please run an analysis first so FIXI "
-            "has a diagnostic report to reference."
+            "has diagnostic context."
         )
 
     else:
 
-        # Save user message
+        # Save user question
 
         st.session_state.messages.append({
             "role": "user",
             "content": question
         })
-
-        # Display user message immediately
-
-        with st.chat_message("user"):
-            st.markdown(question)
 
         try:
 
@@ -965,46 +1122,46 @@ if question:
                 api_key=st.secrets["OPENROUTER_APIKEY"]
             )
 
-            # SYSTEM INSTRUCTIONS
+            # System instructions
 
             conversation = [
                 {
                     "role": "system",
-                    "content": """
-You are FIXI, the intelligent AI companion of DS-FixIT.
+                    "content": f"""
+You are FIXI, the AI companion of DS-FixIT.
 
 Your personality:
-- Polite
 - Honest
+- Polite
 - Friendly
 - Technically rigorous
 - Helpful
-- Clear and concise
+- Clear and understandable
 
-Your responsibilities:
+CURRENT SOLVER MODE:
+{st.session_state.latest_mode}
 
-1. Answer follow-up questions using the diagnostic report.
-2. Explain technical concepts in understandable language.
-3. Provide corrected code when requested.
-4. Explain root causes rather than just symptoms.
-5. Never invent evidence or claim certainty without support.
-6. Highlight safety warnings when relevant.
-7. Use Markdown headings, bullets, and code blocks.
-8. Clearly distinguish confirmed facts from possibilities.
+PREVIOUS DIAGNOSTIC REPORT:
+{st.session_state.latest_result}
 
-When the user asks for a solution:
-- Give practical steps.
-- Explain why each step works.
-- Include verification instructions.
+YOUR RESPONSIBILITIES:
+
+1. Answer questions using the diagnostic report.
+2. Explain root causes clearly.
+3. Provide practical solutions.
+4. Provide corrected code when requested.
+5. Explain technical concepts in simple language.
+6. Never invent evidence.
+7. Admit uncertainty when information is incomplete.
+8. Include relevant safety precautions.
+9. Use readable Markdown.
+10. Keep answers focused on the user's question.
+
+When suggesting a solution, explain:
+- What to do
+- Why it works
+- How to verify it
 """
-                },
-
-                {
-                    "role": "assistant",
-                    "content": (
-                        "PREVIOUS DIAGNOSTIC REPORT:\n\n"
-                        + st.session_state.latest_result
-                    )
                 }
             ]
 
@@ -1014,36 +1171,31 @@ When the user asks for a solution:
                 st.session_state.messages[-10:]
             )
 
-            # AI RESPONSE
+            # Generate response
 
-            with st.chat_message("assistant"):
+            with st.spinner("🚀 FIXI is thinking..."):
 
-                with st.spinner(
-                    "🚀 FIXI is thinking..."
-                ):
+                response = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=conversation
+                )
 
-                    response = client.chat.completions.create(
-                        model="openrouter/free",
-                        messages=conversation
+                answer = response.choices[0].message.content
+
+                if not answer:
+
+                    raise ValueError(
+                        "FIXI returned an empty response."
                     )
 
-                    answer = (
-                        response.choices[0].message.content
-                    )
-
-                    if not answer:
-                        raise ValueError(
-                            "FIXI returned an empty response."
-                        )
-
-                st.markdown(answer)
-
-            # SAVE ASSISTANT RESPONSE
+            # Save answer
 
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": answer
             })
+
+            st.rerun()
 
         except Exception as e:
 
@@ -1051,17 +1203,35 @@ When the user asks for a solution:
                 f"FIXI chat failed: {e}"
             )
 
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": (
-                    "I encountered an error while processing "
-                    "your question. Please try again."
-                )
-            })
+            # Remove the unanswered user message so
+            # the conversation does not become misleading.
+
+            if (
+                st.session_state.messages
+                and st.session_state.messages[-1]["role"] == "user"
+            ):
+
+                st.session_state.messages.pop()
 
 
 # ==========================================
-# FOOTER
+# CHAT RESET
+# ==========================================
+
+if st.session_state.messages:
+
+    if st.button(
+        "🗑️ Clear FIXI Conversation",
+        use_container_width=True
+    ):
+
+        st.session_state.messages = []
+
+        st.rerun()
+
+
+# ==========================================
+# FINAL FOOTER
 # ==========================================
 
 st.divider()
@@ -1070,11 +1240,11 @@ st.markdown(
     """
     <div style="
         text-align:center;
-        padding:18px;
-        opacity:0.75;
+        padding:25px 10px;
     ">
+
         <div style="
-            font-size:20px;
+            font-size:30px;
             font-weight:900;
             background:linear-gradient(90deg,#009fff,#ec2f4b);
             -webkit-background-clip:text;
@@ -1083,13 +1253,21 @@ st.markdown(
             DS-FixIT 🚀
         </div>
 
-        <p style="font-size:12px;">
+        <div style="
+            font-size:14px;
+            margin-top:8px;
+        ">
             Detect. Analyse. Fix.
-        </p>
+        </div>
 
-        <p style="font-size:11px;">
+        <div style="
+            font-size:12px;
+            opacity:0.7;
+            margin-top:12px;
+        ">
             Powered by FIXI • © 2026
-        </p>
+        </div>
+
     </div>
     """,
     unsafe_allow_html=True
