@@ -1,4 +1,3 @@
-
 import streamlit as st
 import requests
 import base64
@@ -85,6 +84,14 @@ with st.sidebar:
 
     st.toggle("🌙 Dark mode", key="dark_mode")
 
+    # Multilingual Selector
+    st.markdown("### 🌍 Language")
+    selected_language = st.selectbox(
+        "Response Language",
+        ["English", "Spanish", "French", "German", "Tamil", "Hindi", "Mandarin"],
+        label_visibility="collapsed"
+    )
+
     st.markdown("### 🧠 FIXI")
     st.write("Your intelligent AI companion.")
     st.caption("Honest • Polite • Helpful")
@@ -93,21 +100,24 @@ with st.sidebar:
 
     st.markdown("### 📚 Recent diagnoses")
 
-    for i, item in enumerate(
-        reversed(st.session_state.history[-10:])
-    ):
-        if st.button(
-            item["title"][:28],
-            key=f"history_{i}",
-            use_container_width=True
-        ):
-            st.session_state.selected_history = item
+    if not st.session_state.history:
+        st.caption("No history yet.")
+    else:
+        for i, item in enumerate(reversed(st.session_state.history[-10:])):
+            if st.button(
+                item["title"][:28],
+                key=f"history_{i}",
+                use_container_width=True
+            ):
+                st.session_state.latest_result = item["result"]
 
     st.divider()
 
-    st.markdown("### About")
-    st.write("Creator: J.P. Dheepak Saianand")
-    st.caption("DS-FixIT © 2026")
+    with st.expander("ℹ️ About DS-FixIT"):
+        st.write("**DS-FixIT** is a universal multi-modal problem detection engine powered by AI.")
+        st.write("**Creator:** J.P. Dheepak Saianand")
+        st.write("**AI Companion:** FIXI")
+        st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- DARK MODE ----------------
 
@@ -171,18 +181,24 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
+file_notes = {}
 if uploaded_files:
-    st.write("### Uploaded evidence")
-
+    st.write("### 🗂️ File Context & Notes")
     for file in uploaded_files:
-        if file.type.startswith("image/"):
-            st.image(
-                file,
-                caption=file.name,
-                width=300
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            if file.type.startswith("image/"):
+                st.image(file, caption=file.name, width=150)
+            else:
+                st.write(f"📄 **{file.name}**")
+        with col2:
+            note = st.text_input(
+                f"Optional note for {file.name}",
+                placeholder="e.g. Error starts at line 45...",
+                key=f"note_{file.name}"
             )
-        else:
-            st.write(f"📄 {file.name}")
+            if note:
+                file_notes[file.name] = note
 
 # ---------------- ANALYSIS ----------------
 
@@ -193,7 +209,7 @@ if st.button(
 ):
 
     if not description.strip() and not uploaded_files:
-        st.warning("Please describe a problem or upload an image.")
+        st.warning("Please describe a problem or upload an image/file.")
 
     else:
         try:
@@ -203,6 +219,9 @@ if st.button(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=api_key
             )
+
+            # Build file notes context string if present
+            notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = f"""
 You are FIXI, the AI companion of DS-FixIT,
@@ -214,11 +233,17 @@ Personality:
 - Never pretend certainty.
 - Clearly distinguish facts from possibilities.
 
+RESPONSE LANGUAGE:
+Please provide your entire response in {selected_language}.
+
 USER PROBLEM:
 {description}
 
 ADDITIONAL INFORMATION:
 {additional_info}
+
+UPLOADED FILE NOTES / EXTRA INFO:
+{notes_str if notes_str else "None provided."}
 
 Analyze the supplied information.
 
@@ -350,9 +375,9 @@ if question:
                 {
                     "role": "system",
                     "content": (
-                        "You are FIXI, the honest, polite "
-                        "AI companion of DS-FixIT. "
-                        "Answer follow-up questions using "
+                        f"You are FIXI, the honest, polite "
+                        f"AI companion of DS-FixIT. "
+                        f"Answer follow-up questions in {selected_language} using "
                         "the diagnosis context. Admit uncertainty."
                     )
                 },
