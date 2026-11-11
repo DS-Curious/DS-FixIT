@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.3")
+    st.caption("Universal AI Problem Detector • v4.4")
 
     st.divider()
 
@@ -249,3 +249,64 @@ uploaded_files = st.file_uploader(
         "mp3", "wav", "m4a"
     ],
     accept_multiple_files=True
+)
+
+file_notes = {}
+if uploaded_files:
+    st.markdown("### 🗂️ Attached Evidence Context & Notes")
+    for file in uploaded_files:
+        c1, c2 = st.columns([1, 2])
+        with c1:
+            if file.type.startswith("image/"):
+                st.image(file, caption=file.name, width=160)
+            else:
+                st.write(f"📁 **{file.name}** ({file.type or 'file'})")
+        with c2:
+            note = st.text_input(
+                f"Optional extra note for {file.name}",
+                placeholder="e.g. Error starts at line 45...",
+                key=f"note_{file.name}"
+            )
+            if note:
+                file_notes[file.name] = note
+
+# ---------------- ANALYSIS ENGINE ----------------
+
+if st.button(
+    "🚀 ANALYSE WITH FIXI",
+    type="primary",
+    use_container_width=True
+):
+
+    if not description.strip() and not uploaded_files:
+        st.warning("Please describe the problem or upload evidence (image, audio, or file).")
+
+    else:
+        st.session_state.fixi_mood = "💻 Processing & Analyzing..."
+        try:
+            api_key = st.secrets["OPENROUTER_APIKEY"]
+
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
+            )
+
+            notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
+
+            prompt = f"""
+You are FIXI, the polite, honest, and rigorous neural AI companion of DS-FixIT (Universal AI Problem Detector).
+Selected Solver Mode: {solver_mode}
+
+Core Guidelines:
+- Be honest, polite, and thorough.
+- Never claim absolute certainty; clearly state confidence ratings.
+- Include safety precautions when hardware, electrical, medical, or physical safety is involved.
+
+USER PROBLEM DESCRIPTION:
+{description}
+
+ADDITIONAL INFORMATION:
+{additional_info}
+
+ATTACHED FILE NOTES:
+{notes_str if notes_str else "None
