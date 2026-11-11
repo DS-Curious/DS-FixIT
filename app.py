@@ -4,11 +4,10 @@ import base64
 import mimetypes
 import time
 from openai import OpenAI
-from io import Bytesio if False else None # placeholder for safety
 
 st.set_page_config(
     page_title="DS-FixIT | Universal AI",
-    page_icon="⭐",
+    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -98,13 +97,13 @@ if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
 if "fixi_mood" not in st.session_state:
-    st.session_state.fixi_mood = "⭐ Excited & Ready"
+    st.session_state.fixi_mood = "🚀 Online & Ready"
 
 # ---------------- SIDEBAR (TECHY & FIXI PROFILE) ----------------
 
 with st.sidebar:
-    st.markdown("## ⭐ DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.0")
+    st.markdown("## 🚀 DS-FixIT")
+    st.caption("Universal AI Problem Detector • v3.4")
 
     st.divider()
 
@@ -117,7 +116,7 @@ with st.sidebar:
     
     st.markdown(f"""
     <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #009fff;">
-        <span style="font-size: 38px;">⭐</span><br>
+        <span style="font-size: 38px;">🔮</span><br>
         <b style="color: #009fff; font-size: 18px;">FIXI</b><br>
         <span style="font-size: 12px; color: #555;"><i>Status: {st.session_state.fixi_mood}</i></span><br><br>
         <span class="tech-badge">Honest</span> 
@@ -207,12 +206,12 @@ if st.session_state.dark_mode:
 # ---------------- HEADER ----------------
 
 st.markdown(
-    '<div class="main-title">DS-FixIT ⭐</div>',
+    '<div class="main-title">DS-FixIT 🚀</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">Universal AI Problem Detector • Active Mode: ' + solver_mode + '</div>',
+    '<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>',
     unsafe_allow_html=True
 )
 
@@ -225,7 +224,7 @@ st.divider()
 
 # ---------------- INPUT SECTION ----------------
 
-st.markdown("## 🔍 What's the problem today?")
+st.markdown("## 🚀 What's the problem today?")
 
 col_desc, col_extra = st.columns(2)
 
@@ -275,7 +274,7 @@ if uploaded_files:
 # ---------------- ANALYSIS ENGINE ----------------
 
 if st.button(
-    "⭐ ANALYSE WITH FIXI",
+    "🚀 ANALYSE WITH FIXI",
     type="primary",
     use_container_width=True
 ):
@@ -284,7 +283,7 @@ if st.button(
         st.warning("Please describe the problem or upload evidence (image, audio, or file).")
 
     else:
-        st.session_state.fixi_mood = "🧐 Analyzing & Thinking..."
+        st.session_state.fixi_mood = "💻 Processing & Analyzing..."
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
 
@@ -371,10 +370,10 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
 
                 result = response.choices[0].message.content
                 st.write("✅ Comprehensive diagnosis generated successfully!")
-                status.update(label="⚡ Diagnosis Ready!", state="complete", expanded=False)
+                status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
-            st.session_state.fixi_mood = "✨ Success & Ready"
+            st.session_state.fixi_mood = "🎯 Ready for Next Task"
 
             st.session_state.history.append({
                 "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
@@ -391,7 +390,7 @@ if "latest_result" in st.session_state:
 
     st.divider()
 
-    st.markdown("## 🔎 FIXI's Diagnostic Report")
+    st.markdown("## 🔍 FIXI's Diagnostic Report")
 
     st.markdown(
         '<div class="result-card">',
@@ -411,12 +410,11 @@ if "latest_result" in st.session_state:
             mime="text/markdown"
         )
     with col_dl2:
-        # True PDF Report Generator (Formatted HTML/Text converted for reliable browser download)
         pdf_html_content = f"""
         <html>
         <head><title>DS-FixIT Diagnostic Report</title></head>
         <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
-            <h1 style="color: #009fff;">DS-FixIT ⭐ Diagnostic Report</h1>
+            <h1 style="color: #009fff;">DS-FixIT 🚀 Diagnostic Report</h1>
             <p><b>Mode:</b> {solver_mode}</p>
             <hr/>
             <div>{st.session_state.latest_result.replace(chr(10), '<br>')}</div>
@@ -478,7 +476,7 @@ if question:
 
             conversation.extend(st.session_state.messages[-10:])
 
-            with st.spinner("⭐ FIXI is typing a response..."):
+            with st.spinner("🚀 FIXI is typing a response..."):
                 response = client.chat.completions.create(
                     model="openrouter/free",
                     messages=conversation
