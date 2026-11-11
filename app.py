@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.8")
+    st.caption("Universal AI Problem Detector • v4.9")
 
     st.divider()
 
@@ -116,48 +116,4 @@ with st.sidebar:
     st.markdown("### 🤖 FIXI Companion")
     
     st.markdown(f"""
-    <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 14px; text-align: center; border: 1.5px solid #009fff; box-shadow: 0 4px 12px rgba(0,159,255,0.15);">
-        <div style="font-size: 32px; margin-bottom: 4px;">🤖⚡</div>
-        <b style="color: #009fff; font-size: 19px; letter-spacing: 0.5px;">FIXI</b><br>
-        <span style="font-size: 11px; color: #555;"><i>Neural AI Assistant</i></span><br><br>
-        <span style="font-size: 11px; color: #333;"><b>Status:</b> {st.session_state.fixi_mood}</span><br><br>
-        <span class="tech-badge">Honest</span> 
-        <span class="tech-badge">Polite</span> 
-        <span class="tech-badge">Vision AI</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-
-    # Specialized Solvers (All 9 included)
-    st.markdown("### 🛠️ Specialized Solvers")
-    solver_mode = st.selectbox(
-        "Select Domain Mode",
-        [
-            "General Problem Solver",
-            "Code Doctor & Syntax Repair",
-            "Math & Equation Solver",
-            "Study Assistant",
-            "Home & Hardware Fixer",
-            "Plant & Flora Doctor",
-            "Data & Log Inspector",
-            "Sound Detective",
-            "Writing & Text Doctor"
-        ]
-    )
-
-    st.divider()
-
-    # Conversation Search & Memory Vault
-    st.markdown("### 🧠 FIXI Memory Vault")
-    search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
-
-    if not st.session_state.history:
-        st.caption("No history logged yet.")
-    else:
-        filtered_history = [
-            item for item in st.session_state.history 
-            if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
-        ] if search_query else st.session_state.history
-
-        for i, item in enumerate(reversed(filtered_history[-10:])):
+    <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 14px; text-align: center;
