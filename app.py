@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.0")
+    st.caption("Universal AI Problem Detector • v4.1")
 
     st.divider()
 
@@ -176,7 +176,7 @@ with st.sidebar:
         st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
-# ---------------- DARK MODE OVERRIDE (CLEAN NATIVE STREAMLIT OVERRIDES) ----------------
+# ---------------- DARK MODE OVERRIDE ----------------
 
 if st.session_state.dark_mode:
     st.markdown("""
@@ -264,144 +264,4 @@ if uploaded_files:
         with c2:
             note = st.text_input(
                 f"Optional extra note for {file.name}",
-                placeholder="e.g. Error starts at line 45 or audio timestamp 0:15...",
-                key=f"note_{file.name}"
-            )
-            if note:
-                file_notes[file.name] = note
-
-# ---------------- ANALYSIS ENGINE ----------------
-
-if st.button(
-    "🚀 ANALYSE WITH FIXI",
-    type="primary",
-    use_container_width=True
-):
-
-    if not description.strip() and not uploaded_files:
-        st.warning("Please describe the problem or upload evidence (image, audio, or file).")
-
-    else:
-        st.session_state.fixi_mood = "💻 Processing & Analyzing..."
-        try:
-            api_key = st.secrets["OPENROUTER_APIKEY"]
-
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=api_key
-            )
-
-            notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
-
-            prompt = f"""
-You are FIXI, the polite, honest, and rigorous neural AI companion of DS-FixIT (Universal AI Problem Detector).
-Selected Solver Mode: {solver_mode}
-
-Core Guidelines:
-- Be honest, polite, and thorough.
-- Never claim absolute certainty; clearly state confidence ratings.
-- Include safety precautions when hardware, electrical, medical, or physical safety is involved.
-
-USER PROBLEM DESCRIPTION:
-{description}
-
-ADDITIONAL INFORMATION:
-{additional_info}
-
-ATTACHED FILE NOTES:
-{notes_str if notes_str else "None provided."}
-
-Analyze all supplied inputs comprehensively using this exact multi-perspective structure:
-
-## 1. Problem Identification & Summary
-## 2. Observations, Evidence & Multi-Modal Breakdown
-## 3. Root Cause Map (Underlying triggers & cascading failures)
-## 4. Multi-Perspective Analysis (Security, Performance, & Practical viewpoints)
-## 5. Recommended Step-by-Step Solutions / Patches
-## 6. FIXI VERIFY & Safety Check
-## 7. Prevention & Best Practices
-## 8. Severity Rating & Confidence Limitations
-## 9. Follow-up Questions for the User
-"""
-
-            content = [
-                {
-                    "type": "text",
-                    "text": prompt
-                }
-            ]
-
-            for file in uploaded_files:
-                if file.type.startswith("image/"):
-                    encoded = base64.b64encode(file.getvalue()).decode("utf-8")
-                    mime = file.type
-                    content.append({
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime};base64,{encoded}"
-                        }
-                    })
-                elif file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
-                    try:
-                        file_text = file.getvalue().decode("utf-8")
-                        content.append({
-                            "type": "text",
-                            "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
-                        })
-                    except Exception:
-                        pass
-
-            # Thinking Interface Expander
-            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
-                st.write("🔍 Parsing input description and attached files...")
-                time.sleep(0.4)
-                st.write("🗺️ Constructing Root Cause Map & Multi-Perspective Viewpoints...")
-                
-                response = client.chat.completions.create(
-                    model="openrouter/free",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": content
-                        }
-                    ]
-                )
-
-                result = response.choices[0].message.content
-                st.write("✅ Comprehensive diagnosis generated successfully!")
-                status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
-
-            st.session_state.latest_result = result
-            st.session_state.fixi_mood = "🎯 Ready for Next Task"
-
-            st.session_state.history.append({
-                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
-                "result": result
-            })
-
-        except Exception as e:
-            st.session_state.fixi_mood = "⚠️ Error Encountered"
-            st.error(f"Analysis failed: {e}")
-
-# ---------------- RESULTS DISPLAY & HIGHLIGHTS ----------------
-
-if "latest_result" in st.session_state:
-
-    st.divider()
-
-    st.markdown("## 🔍 FIXI's Diagnostic Report")
-
-    result_text = st.session_state.latest_result
-    
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    
-    # Executive Highlights Banner
-    st.markdown("### ⚡ Executive Diagnostic Highlights")
-    c_col1, c_col2, c_col3 = st.columns(3)
-    with c_col1:
-        st.markdown("**🛡️ Risk Level:**")
-        st.info("Medium / Evaluated")
-    with c_col2:
-        st.markdown("**🎯 Primary Probable Cause:**")
-        st.warning("Review Root Cause Section below")
-    with c_col
+                placeholder="e.g. Error starts
