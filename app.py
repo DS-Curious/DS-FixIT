@@ -83,6 +83,14 @@ div.stButton > button:hover {
     font-size: 11px;
     font-weight: bold;
 }
+
+/* Explicit Light Mode Input Styling for perfect visibility */
+.stTextArea textarea, .stTextInput input {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -104,7 +112,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.8")
+    st.caption("Universal AI Problem Detector • v3.9")
 
     st.divider()
 
@@ -176,7 +184,7 @@ with st.sidebar:
         st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
-# ---------------- DARK MODE OVERRIDE (CLEAN & NATIVE STREAMLIT SUPPORT) ----------------
+# ---------------- DARK MODE OVERRIDE (CRITICAL INPUT TEXT VISIBILITY FIX) ----------------
 
 if st.session_state.dark_mode:
     st.markdown("""
@@ -198,6 +206,12 @@ if st.session_state.dark_mode:
     }
     .subtitle {
         color: #f43f5e !important;
+    }
+    /* Explicit Dark Mode Input Styling for 100% Text Visibility */
+    .stTextArea textarea, .stTextInput input {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #009fff !important;
     }
     </style>
     """, unsafe_allow_html=True)
