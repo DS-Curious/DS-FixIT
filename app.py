@@ -1,6 +1,7 @@
-
 import streamlit as st
-from providers.gemini import GeminiProvider
+import requests
+import time
+from openai import OpenAI
 
 st.set_page_config(
     page_title="DS-FixIT",
@@ -36,14 +37,23 @@ if st.button("Analyse Issue", type="primary"):
     else:
         try:
             with st.spinner("FIXI is analysing your issue..."):
-                ai = GeminiProvider(
-                    st.secrets["GEMINI_API_KEY"]
+                # Initialize OpenRouter API client via OpenAI SDK
+                client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=st.secrets["OPENROUTER_APIKEY"],
                 )
 
-                result = ai.analyse(
-                    description,
-                    files
+                response = client.chat.completions.create(
+                    model="google/gemini-2.0-flash-001",  # Or any desired model on OpenRouter
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"Problem description: {description}"
+                        }
+                    ]
                 )
+
+                result = response.choices[0].message.content
 
             st.subheader("🔎 Analysis Results")
             st.markdown(result)
@@ -51,20 +61,18 @@ if st.button("Analyse Issue", type="primary"):
         except Exception as e:
             st.error(f"Analysis failed: {e}")
 
-import requests
-import time
-
-st.write("FIXI: Checking Google connectivity...")
+st.divider()
+st.write("FIXI: Checking OpenRouter connectivity...")
 
 try:
     start = time.time()
 
     r = requests.get(
-        "https://generativelanguage.googleapis.com",
+        "https://openrouter.ai/api/v1/models",
         timeout=10
     )
 
-    st.write("Google reachable:", r.status_code)
+    st.write("OpenRouter reachable:", r.status_code)
     st.write("Time:", round(time.time() - start, 2), "seconds")
 
 except Exception as e:
