@@ -75,14 +75,6 @@ div.stButton > button:hover {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
-.highlight-box {
-    padding: 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(0, 159, 255, 0.1), rgba(236, 47, 75, 0.1));
-    border-left: 5px solid #009fff;
-    margin-bottom: 20px;
-}
-
 .tech-badge {
     background: #009fff;
     color: white;
@@ -108,11 +100,11 @@ if "dark_mode" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
-# ---------------- SIDEBAR (TECHY ANIME FIXI PROFILE) ----------------
+# ---------------- SIDEBAR (PROFESSIONAL FIXI PROFILE) ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.5")
+    st.caption("Universal AI Problem Detector • v3.6")
 
     st.divider()
 
@@ -120,14 +112,14 @@ with st.sidebar:
 
     st.divider()
 
-    # FIXI Tech-Anime Companion Profile
-    st.markdown("### 🌸 FIXI Companion")
+    # FIXI Professional AI Companion Profile
+    st.markdown("### 🤖 FIXI Companion")
     
     st.markdown(f"""
     <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 14px; text-align: center; border: 1.5px solid #009fff; box-shadow: 0 4px 12px rgba(0,159,255,0.15);">
-        <div style="font-size: 32px; margin-bottom: 4px;">⚡🌸🤖</div>
+        <div style="font-size: 32px; margin-bottom: 4px;">🤖⚡</div>
         <b style="color: #009fff; font-size: 19px; letter-spacing: 0.5px;">FIXI</b><br>
-        <span style="font-size: 11px; color: #444; background: rgba(255,255,255,0.6); padding: 2px 6px; border-radius: 4px;"><i>Cyber-Anime Assistant</i></span><br><br>
+        <span style="font-size: 11px; color: #555;"><i>Neural AI Assistant</i></span><br><br>
         <span style="font-size: 11px; color: #333;"><b>Status:</b> {st.session_state.fixi_mood}</span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
@@ -181,10 +173,10 @@ with st.sidebar:
     with st.expander("ℹ️ About DS-FixIT & Creator"):
         st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
         st.write("**Creator:** J.P. Dheepak Saianand")
-        st.write("**Companion:** FIXI (Tech-Anime Edition)")
+        st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
-# ---------------- DARK MODE OVERRIDE (FIXED TEXT READABILITY) ----------------
+# ---------------- DARK MODE OVERRIDE (SMOOTH & CLEAN READABILITY) ----------------
 
 if st.session_state.dark_mode:
     st.markdown("""
@@ -207,17 +199,14 @@ if st.session_state.dark_mode:
     .subtitle {
         color: #f43f5e !important;
     }
-    /* Force high-contrast legible text for all headings, labels, inputs, and textareas in dark mode */
     p, label, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText {
         color: #f9fafb !important;
     }
-    input, textarea, div[data-baseweb="select"] > div {
-        color: #ffffff !important;
-        background-color: #1e293b !important;
-    }
-    .stTextArea textarea {
-        color: #ffffff !important;
-        background-color: #1e293b !important;
+    /* Seamless dark input fields without harsh black boxes */
+    .stTextInput input, .stTextArea textarea {
+        color: #f9fafb !important;
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        border: 1px solid rgba(0, 159, 255, 0.4) !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -314,7 +303,7 @@ if st.button(
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = f"""
-You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).
+You are FIXI, the polite, honest, and rigorous neural AI companion of DS-FixIT (Universal AI Problem Detector).
 Selected Solver Mode: {solver_mode}
 
 Core Guidelines:
@@ -411,12 +400,11 @@ if "latest_result" in st.session_state:
 
     st.markdown("## 🔍 FIXI's Diagnostic Report")
 
-    # Extract key highlights (Risk Level, Probable Cause, Solution) to display at the top
     result_text = st.session_state.latest_result
     
     st.markdown('<div class="result-card">', unsafe_allow_html=True)
     
-    # Highlight Banner (Quick Summary of Most Important Items)
+    # Executive Highlights Banner
     st.markdown("### ⚡ Executive Diagnostic Highlights")
     c_col1, c_col2, c_col3 = st.columns(3)
     with c_col1:
@@ -498,7 +486,7 @@ if question:
                 {
                     "role": "system",
                     "content": (
-                        "You are FIXI, the polite, honest, and helpful cyber-anime AI companion of DS-FixIT. "
+                        "You are FIXI, the polite, honest, and helpful neural AI companion of DS-FixIT. "
                         "Answer follow-up questions using the diagnostic context below. "
                         "Admit uncertainty when evidence is incomplete and remain polite and clear."
                     )
