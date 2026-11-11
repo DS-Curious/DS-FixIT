@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.2")
+    st.caption("Universal AI Problem Detector • v4.3")
 
     st.divider()
 
@@ -171,4 +171,81 @@ with st.sidebar:
     st.divider()
 
     with st.expander("ℹ️ About DS-FixIT & Creator"):
-        st.write("**DS
+        st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
+        st.write("**Creator:** J.P. Dheepak Saianand")
+        st.write("**Companion:** FIXI")
+        st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
+
+# ---------------- DARK MODE OVERRIDE ----------------
+
+if st.session_state.dark_mode:
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(
+            135deg, #090d16, #111827, #1f1118
+        ) !important;
+        color: #f3f4f6 !important;
+    }
+    [data-testid="stSidebar"] {
+        background: #0f172a !important;
+        border-right: 2px solid rgba(0, 159, 255, 0.3);
+    }
+    .result-card {
+        background: rgba(15, 23, 42, 0.95) !important;
+        border: 1px solid #009fff !important;
+        color: #f3f4f6 !important;
+    }
+    .subtitle {
+        color: #f43f5e !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+
+st.markdown(
+    '<div class="main-title">DS-FixIT 🚀</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>',
+    unsafe_allow_html=True
+)
+
+st.write(
+    "Detect code errors, mathematical proofs, study queries, acoustic anomalies, hardware faults, plant diseases, or text issues instantly. "
+    "FIXI is ready to assist you with rigorous multi-perspective analysis."
+)
+
+st.divider()
+
+# ---------------- INPUT SECTION ----------------
+
+st.markdown("## 🚀 What's the problem today?")
+
+col_desc, col_extra = st.columns(2)
+
+with col_desc:
+    description = st.text_area(
+        "Describe your problem",
+        placeholder="Explain what's happening or paste code/equations/errors...",
+        height=140
+    )
+
+with col_extra:
+    additional_info = st.text_area(
+        "Additional Information (Optional Context)",
+        placeholder="Provide environmental factors, OS, previous attempts, error logs...",
+        height=140
+    )
+
+uploaded_files = st.file_uploader(
+    "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
+    type=[
+        "png", "jpg", "jpeg", "webp",
+        "pdf", "txt", "csv", "py", "json",
+        "mp3", "wav", "m4a"
+    ],
+    accept_multiple_files=True
