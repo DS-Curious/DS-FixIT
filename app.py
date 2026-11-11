@@ -200,7 +200,7 @@ if st.session_state.dark_mode:
     p, label, span, h1, h2, h3, h4, h5, h6 {
         color: #f9fafb !important;
     }
-    /* FIX FOR DARK MODE TEXT BOXES, INPUTS, CHAT INPUT & UPLOAD BOX */
+    /* FIX FOR DARK MODE TEXT BOXES, INPUTS & CHAT INPUT */
     input, textarea, [data-baseweb="input"] div, [data-baseweb="base-input"], [data-baseweb="textarea"], [data-testid="stChatInput"] textarea {
         background-color: #1e293b !important;
         color: #f9fafb !important;
@@ -211,8 +211,8 @@ if st.session_state.dark_mode:
         border: 1px solid #334155 !important;
         border-radius: 12px !important;
     }
-    /* Complete File Uploader Dark Theme Override */
-    [data-testid="stFileUploader"], [data-testid="stFileUploader"] section {
+    /* File uploader dropzone and upload icon brightness fix in dark mode */
+    [data-testid="stFileUploader"] section {
         background-color: #1e293b !important;
         border: 1px dashed #334155 !important;
         border-radius: 12px !important;
@@ -220,9 +220,6 @@ if st.session_state.dark_mode:
     [data-testid="stFileUploader"] svg {
         fill: #009fff !important;
         color: #009fff !important;
-    }
-    [data-testid="stFileUploader"] span, [data-testid="stFileUploader"] small, [data-testid="stFileUploader"] div {
-        color: #f9fafb !important;
     }
     /* Placeholder text visibility in dark mode */
     ::placeholder {
