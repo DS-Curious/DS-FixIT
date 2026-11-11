@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.6")
+    st.caption("Universal AI Problem Detector • v4.7")
 
     st.divider()
 
@@ -339,76 +339,3 @@ if st.button(
                             "type": "text",
                             "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
                         })
-                    except Exception:
-                        pass
-
-            # Thinking Interface Expander
-            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
-                st.write("🔍 Parsing input description and attached files...")
-                time.sleep(0.4)
-                st.write("🗺️ Constructing Root Cause Map & Multi-Perspective Viewpoints...")
-                
-                response = client.chat.completions.create(
-                    model="openrouter/free",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": content
-                        }
-                    ]
-                )
-
-                result = response.choices[0].message.content
-                st.write("✅ Comprehensive diagnosis generated successfully!")
-                status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
-
-            st.session_state.latest_result = result
-            st.session_state.fixi_mood = "🎯 Ready for Next Task"
-
-            st.session_state.history.append({
-                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
-                "result": result
-            })
-
-        except Exception as e:
-            st.session_state.fixi_mood = "⚠️ Error Encountered"
-            st.error(f"Analysis failed: {e}")
-
-# ---------------- RESULTS DISPLAY & HIGHLIGHTS ----------------
-
-if "latest_result" in st.session_state:
-
-    st.divider()
-
-    st.markdown("## 🔍 FIXI's Diagnostic Report")
-
-    result_text = st.session_state.latest_result
-    
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    
-    # Executive Highlights Banner
-    st.markdown("### ⚡ Executive Diagnostic Highlights")
-    c_col1, c_col2, c_col3 = st.columns(3)
-    with c_col1:
-        st.markdown("**🛡️ Risk Level:**")
-        st.info("Medium / Evaluated")
-    with c_col2:
-        st.markdown("**🎯 Primary Probable Cause:**")
-        st.warning("Review Root Cause Section below")
-    with c_col3:
-        st.markdown("**💡 Key Solution:**")
-        st.success("Check Recommended Steps below")
-
-    st.markdown("---")
-
-    # Full Report Display
-    st.markdown(result_text)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    col_dl1, col_dl2 = st.columns(2)
-    with col_dl1:
-        st.download_button(
-            "📥 Download Report (Markdown)",
-            data=st.session_state.latest_result,
-            file_name="DS-FixIT-Diagnostic-Report
