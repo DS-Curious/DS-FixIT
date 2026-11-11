@@ -44,14 +44,14 @@ if st.button("Analyse Issue", type="primary"):
                 )
 
                 response = client.chat.completions.create(
-                    model="google/gemini-3.8-flash",  # Active model string on OpenRouter
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": f"Problem description: {description}"
-                        }
-                    ]
-                )
+    model="openrouter/free",  # Automatically routes to currently available 100% free models
+    messages=[
+        {
+            "role": "user",
+            "content": f"Problem description: {description}"
+        }
+    ]
+)
 
                 result = response.choices[0].message.content
 
