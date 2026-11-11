@@ -258,32 +258,196 @@ if st.button(
 
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
-            prompt = f"""
-You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).
-Selected Solver Mode: {solver_mode}
+            prompt = (
+                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).\n"
+                f"Selected Solver Mode: {solver_mode}\n\n"
+                "Core Guidelines:\n"
+                "- Be honest, polite, and thorough.\n"
+                "- Never claim absolute certainty; clearly state confidence ratings.\n"
+                "- Include safety precautions when hardware, electrical, medical, or physical safety is involved.\n\n"
+                f"USER PROBLEM DESCRIPTION:\n{description}\n\n"
+                f"ADDITIONAL INFORMATION:\n{additional_info}\n\n"
+                f"ATTACHED FILE NOTES:\n{notes_str if notes_str else 'None provided.'}\n\n"
+                "Analyze all supplied inputs comprehensively using this exact multi-perspective structure:\n\n"
+                "## 1. Problem Identification & Summary\n"
+                "## 2. Observations, Evidence & Multi-Modal Breakdown\n"
+                "## 3. Root Cause Map (Underlying triggers & cascading failures)\n"
+                "## 4. Multi-Perspective Analysis (Security, Performance, & Practical viewpoints)\n"
+                "## 5. Recommended Step-by-Step Solutions / Patches\n"
+                "## 6. FIXI VERIFY & Safety Check\n"
+                "## 7. Prevention & Best Practices\n"
+                "## 8. Severity Rating & Confidence Limitations\n"
+                "## 9. Follow-up Questions for the User"
+            )
 
-Core Guidelines:
-- Be honest, polite, and thorough.
-- Never claim absolute certainty; clearly state confidence ratings.
-- Include safety precautions when hardware, electrical, medical, or physical safety is involved.
+            content = [
+                {
+                    "type": "text",
+                    "text": prompt
+                }
+            ]
 
-USER PROBLEM DESCRIPTION:
-{description}
+            for file in uploaded_files:
+                if file.type.startswith("image/"):
+                    encoded = base64.b64encode(file.getvalue()).decode("utf-8")
+                    mime = file.type
+                    content.append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime};base64,{encoded}"
+                        }
+                    })
+                elif file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
+                    try:
+                        file_text = file.getvalue().decode("utf-8")
+                        content.append({
+                            "type": "text",
+                            "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
+                        })
+                    except Exception:
+                        pass
 
-ADDITIONAL INFORMATION:
-{additional_info}
+            # Thinking Interface Expander
+            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
+                st.write("🔍 Parsing input description and attached files...")
+                time.sleep(0.4)
+                st.write("🗺️ Constructing Root Cause Map & Multi-Perspective Viewpoints...")
+                
+                response = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": content
+                        }
+                    ]
+                )
 
-ATTACHED FILE NOTES:
-{notes_str if notes_str else "None provided."}
+                result = response.choices[0].message.content
+                st.write("✅ Comprehensive diagnosis generated successfully!")
+                status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
 
-Analyze all supplied inputs comprehensively using this exact multi-perspective structure:
+            st.session_state.latest_result = result
+            st.session_state.fixi_mood = "🎯 Ready for Next Task"
 
-## 1. Problem Identification & Summary
-## 2. Observations, Evidence & Multi-Modal Breakdown
-## 3. Root Cause Map (Underlying triggers & cascading failures)
-## 4. Multi-Perspective Analysis (Security, Performance, & Practical viewpoints)
-## 5. Recommended Step-by-Step Solutions / Patches
-## 6. FIXI VERIFY & Safety Check
-## 7. Prevention & Best Practices
-## 8. Severity Rating & Confidence Limitations
-## 9. Follow-up Questions for the User
+            st.session_state.history.append({
+                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
+                "result": result
+            })
+
+        except Exception as e:
+            st.session_state.fixi_mood = "⚠️ Error Encountered"
+            st.error(f"Analysis failed: {e}")
+
+# ---------------- RESULTS DISPLAY ----------------
+
+if "latest_result" in st.session_state and st.session_state.latest_result:
+
+    st.divider()
+
+    st.markdown("## 🔍 FIXI's Diagnostic Report")
+
+    st.markdown(
+        '<div class="result-card">',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(str(st.session_state.latest_result))
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        st.download_button(
+            label="📥 Download Report (Markdown)",
+            data=str(st.session_state.latest_result),
+            file_name="DS-FixIT-Diagnostic-Report.md",
+            mime="text/markdown",
+            key="download_markdown_btn"
+        )
+    with col_dl2:
+        report_text = str(st.session_state.latest_result)
+        pdf_html_content = f"""
+        <html>
+        <head><title>DS-FixIT Diagnostic Report</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
+            <h1 style="color: #009fff;">DS-FixIT 🚀 Diagnostic Report</h1>
+            <p><b>Mode:</b> {solver_mode}</p>
+            <hr/>
+            <div>{report_text.replace(chr(10), '<br>')}</div>
+            <hr/>
+            <p style="font-size: 11px; color: #777;">Generated by FIXI • DS-FixIT © 2026</p>
+        </body>
+        </html>
+        """
+        st.download_button(
+            label="📄 Download Official PDF Report",
+            data=pdf_html_content,
+            file_name="DS-FixIT-Diagnostic-Report.html",
+            mime="text/html",
+            key="download_html_btn",
+            help="Downloads the official formatted report (can be printed to PDF instantly in any browser)."
+        )
+
+# ---------------- FIXI INTERACTIVE CHAT ----------------
+
+st.divider()
+
+st.markdown("## 💬 Talk with FIXI")
+st.caption("Have follow-up questions about the diagnosis, code patches, or root causes? Ask FIXI anytime!")
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+question = st.chat_input("Ask FIXI a follow-up question...")
+
+if question:
+    if "latest_result" not in st.session_state:
+        st.warning("Please run an analysis first so FIXI has context!")
+    else:
+        st.session_state.messages.append({
+            "role": "user",
+            "content": question
+        })
+
+        try:
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=st.secrets["OPENROUTER_APIKEY"]
+            )
+
+            conversation = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT. "
+                        "Answer follow-up questions using the diagnostic context below. "
+                        "Admit uncertainty when evidence is incomplete and remain polite and clear."
+                    )
+                },
+                {
+                    "role": "assistant",
+                    "content": f"Previous diagnostic context:\n{st.session_state.latest_result}"
+                }
+            ]
+
+            conversation.extend(st.session_state.messages[-10:])
+
+            with st.spinner("🚀 FIXI is typing a response..."):
+                response = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=conversation
+                )
+
+            answer = response.choices[0].message.content
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": answer
+            })
+
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"FIXI chat failed: {e}")
