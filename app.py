@@ -104,7 +104,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.7")
+    st.caption("Universal AI Problem Detector • v3.8")
 
     st.divider()
 
@@ -176,7 +176,7 @@ with st.sidebar:
         st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
-# ---------------- DARK MODE OVERRIDE (CLEAN & SEAMLESS) ----------------
+# ---------------- DARK MODE OVERRIDE (CLEAN & NATIVE STREAMLIT SUPPORT) ----------------
 
 if st.session_state.dark_mode:
     st.markdown("""
@@ -191,7 +191,6 @@ if st.session_state.dark_mode:
         background: #0f172a !important;
         border-right: 2px solid rgba(0, 159, 255, 0.3);
     }
-    /* Fixed result card background for perfect dark-mode visibility */
     .result-card {
         background: rgba(15, 23, 42, 0.95) !important;
         border: 1px solid #009fff !important;
@@ -199,10 +198,6 @@ if st.session_state.dark_mode:
     }
     .subtitle {
         color: #f43f5e !important;
-    }
-    /* Ensure all text elements inside the result card and app remain bright and clear */
-    p, label, span, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText {
-        color: #f9fafb !important;
     }
     </style>
     """, unsafe_allow_html=True)
