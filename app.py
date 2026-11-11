@@ -93,9 +93,6 @@ if "history" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
-
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
@@ -104,10 +101,6 @@ if "fixi_mood" not in st.session_state:
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
     st.caption("Universal AI Problem Detector • v3.4")
-
-    st.divider()
-
-    st.toggle("🌙 Dark mode", key="dark_mode")
 
     st.divider()
 
@@ -173,46 +166,6 @@ with st.sidebar:
         st.write("**Creator:** J.P. Dheepak Saianand")
         st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
-
-# ---------------- DARK MODE OVERRIDE (HIGH READABILITY CONTRAST) ----------------
-
-if st.session_state.dark_mode:
-    st.markdown("""
-    <style>
-    .stApp {
-        background: linear-gradient(
-            135deg, #090d16, #111827, #1f1118
-        ) !important;
-        color: #f3f4f6 !important;
-    }
-    [data-testid="stSidebar"] {
-        background: #0f172a !important;
-        border-right: 2px solid rgba(0, 159, 255, 0.3);
-    }
-    .result-card {
-        background: rgba(15, 23, 42, 0.95) !important;
-        border: 1px solid #009fff !important;
-        color: #f3f4f6 !important;
-    }
-    .subtitle {
-        color: #f43f5e !important;
-    }
-    p, label, span, h1, h2, h3, h4, h5, h6 {
-        color: #f9fafb !important;
-    }
-    /* FIX FOR DARK MODE TEXT BOXES & INPUTS */
-    input, textarea, [data-baseweb="input"] div, [data-baseweb="base-input"], [data-baseweb="textarea"] {
-        background-color: #1e293b !important;
-        color: #f9fafb !important;
-        border-color: #334155 !important;
-    }
-    /* Placeholder text visibility in dark mode */
-    ::placeholder {
-        color: #94a3b8 !important;
-        opacity: 1 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
 
@@ -459,51 +412,3 @@ for message in st.session_state.messages:
 question = st.chat_input("Ask FIXI a follow-up question...")
 
 if question:
-    if "latest_result" not in st.session_state:
-        st.warning("Please run an analysis first so FIXI has context!")
-    else:
-        st.session_state.messages.append({
-            "role": "user",
-            "content": question
-        })
-
-        try:
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=st.secrets["OPENROUTER_APIKEY"]
-            )
-
-            conversation = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT. "
-                        "Answer follow-up questions using the diagnostic context below. "
-                        "Admit uncertainty when evidence is incomplete and remain polite and clear."
-                    )
-                },
-                {
-                    "role": "assistant",
-                    "content": f"Previous diagnostic context:\n{st.session_state.latest_result}"
-                }
-            ]
-
-            conversation.extend(st.session_state.messages[-10:])
-
-            with st.spinner("🚀 FIXI is typing a response..."):
-                response = client.chat.completions.create(
-                    model="openrouter/free",
-                    messages=conversation
-                )
-
-            answer = response.choices[0].message.content
-
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer
-            })
-
-            st.rerun()
-
-        except Exception as e:
-            st.error(f"FIXI chat failed: {e}")
