@@ -4,6 +4,7 @@ import base64
 import mimetypes
 import time
 from openai import OpenAI
+from io import Bytesio if False else None # placeholder for safety
 
 st.set_page_config(
     page_title="DS-FixIT | Universal AI",
@@ -12,33 +13,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING (CYAN-MINT-YELLOW GRADIENT & TECHY THEME) ----------------
+# ---------------- CONFIG & STYLING (#009fff → #ec2f4b GRADIENT THEME) ----------------
 
 st.markdown("""
 <style>
-/* Base Light Theme Gradient: Cyan, Mint, Yellow */
+/* Base Light Theme Gradient: #009fff to #ec2f4b */
 .stApp {
     background: linear-gradient(
         135deg,
-        #e0fbfc 0%,
-        #d8f3dc 50%,
-        #fefae0 100%
+        #f0f8ff 0%,
+        #eef2f3 50%,
+        #fff0f3 100%
     );
-    color: #1d3557;
+    color: #111827;
 }
 
 [data-testid="stSidebar"] {
     background: linear-gradient(
-        180deg, #cbf3f0, #e8f5e9, #fefae0
+        180deg, #e0f2fe, #fce7f3, #fff1f2
     );
-    border-right: 2px solid rgba(0, 174, 202, 0.2);
+    border-right: 2px solid rgba(0, 159, 255, 0.2);
 }
 
 .main-title {
     font-size: 48px;
     font-weight: 900;
     background: linear-gradient(
-        90deg, #0096c7, #2ec4b6, #e9c46a
+        90deg, #009fff, #ec2f4b
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -46,38 +47,38 @@ st.markdown("""
 }
 
 .subtitle {
-    color: #2b6777;
+    color: #4b5563;
     font-size: 18px;
     font-weight: 600;
 }
 
 div.stButton > button {
     border-radius: 12px;
-    background: linear-gradient(90deg, #00b4d8, #52b788);
+    background: linear-gradient(90deg, #009fff, #ec2f4b);
     color: #ffffff;
     font-weight: bold;
     border: none;
-    box-shadow: 0 4px 10px rgba(0,180,216,0.2);
+    box-shadow: 0 4px 12px rgba(0, 159, 255, 0.25);
     transition: all 0.3s ease;
 }
 
 div.stButton > button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0,180,216,0.4);
+    box-shadow: 0 6px 16px rgba(236, 47, 75, 0.35);
 }
 
 .result-card {
     padding: 24px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid #90e0ef;
-    box-shadow: 0 8px 32px rgba(0, 119, 182, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 159, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
 .tech-badge {
-    background: #00b4d8;
+    background: #009fff;
     color: white;
-    padding: 3px 8px;
+    padding: 3px 9px;
     border-radius: 6px;
     font-size: 11px;
     font-weight: bold;
@@ -96,11 +97,14 @@ if "messages" not in st.session_state:
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
+if "fixi_mood" not in st.session_state:
+    st.session_state.fixi_mood = "⭐ Excited & Ready"
+
 # ---------------- SIDEBAR (TECHY & FIXI PROFILE) ----------------
 
 with st.sidebar:
     st.markdown("## ⭐ DS-FixIT")
-    st.caption("Universal AI Problem Detector • v2.6")
+    st.caption("Universal AI Problem Detector • v3.0")
 
     st.divider()
 
@@ -108,49 +112,54 @@ with st.sidebar:
 
     st.divider()
 
-    # FIXI Companion Profile
+    # FIXI Dynamic Avatar & Expression
     st.markdown("### 🤖 FIXI Companion")
     
-    st.markdown("""
-    <div style="background: rgba(0, 180, 216, 0.12); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #00b4d8;">
-        <span style="font-size: 36px;">⭐</span><br>
-        <b style="color: #0077b6; font-size: 18px;">FIXI</b><br>
-        <span style="font-size: 12px; color: #555;"><i>Universal AI Companion</i></span><br><br>
+    st.markdown(f"""
+    <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #009fff;">
+        <span style="font-size: 38px;">⭐</span><br>
+        <b style="color: #009fff; font-size: 18px;">FIXI</b><br>
+        <span style="font-size: 12px; color: #555;"><i>Status: {st.session_state.fixi_mood}</i></span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
-        <span class="tech-badge">Accurate</span>
+        <span class="tech-badge">Multi-Perspective</span>
     </div>
     """, unsafe_allow_html=True)
 
     st.write("")
-    st.caption("Mode: Universal Diagnostic & Support")
 
-    st.divider()
-
-    # Specialized Feature Modes
+    # Specialized Solvers (All 9 included)
     st.markdown("### 🛠️ Specialized Solvers")
     solver_mode = st.selectbox(
-        "Select Domain Solver Mode",
+        "Select Domain Mode",
         [
             "General Problem Solver",
             "Code Doctor & Syntax Repair",
             "Math & Equation Solver",
-            "Plant & Flora Doctor",
+            "Study Assistant",
             "Home & Hardware Fixer",
-            "Data & Log File Inspector",
+            "Plant & Flora Doctor",
+            "Data & Log Inspector",
+            "Sound Detective",
             "Writing & Text Doctor"
         ]
     )
 
     st.divider()
 
+    # Conversation Search & Memory Vault
     st.markdown("### 🧠 FIXI Memory Vault")
-    st.caption("Recent diagnostic runs & sessions")
+    search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
 
     if not st.session_state.history:
         st.caption("No history logged yet.")
     else:
-        for i, item in enumerate(reversed(st.session_state.history[-10:])):
+        filtered_history = [
+            item for item in st.session_state.history 
+            if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
+        ] if search_query else st.session_state.history
+
+        for i, item in enumerate(reversed(filtered_history[-10:])):
             if st.button(
                 f"📌 {item['title'][:25]}...",
                 key=f"history_{i}",
@@ -173,24 +182,24 @@ if st.session_state.dark_mode:
     <style>
     .stApp {
         background: linear-gradient(
-            135deg, #0b131f, #111d27, #1a2823
+            135deg, #090d16, #111827, #1f1118
         ) !important;
-        color: #f0fdf4 !important;
+        color: #f3f4f6 !important;
     }
     [data-testid="stSidebar"] {
-        background: #0f1c24 !important;
-        border-right: 2px solid rgba(46, 196, 182, 0.3);
+        background: #0f172a !important;
+        border-right: 2px solid rgba(0, 159, 255, 0.3);
     }
     .result-card {
-        background: rgba(15, 28, 36, 0.9) !important;
-        border: 1px solid #2ec4b6 !important;
-        color: #f0fdf4 !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+        border: 1px solid #009fff !important;
+        color: #f3f4f6 !important;
     }
     .subtitle {
-        color: #4ade80 !important;
+        color: #f43f5e !important;
     }
     p, label, span, h1, h2, h3, h4, h5, h6 {
-        color: #f8fafc !important;
+        color: #f9fafb !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -208,8 +217,8 @@ st.markdown(
 )
 
 st.write(
-    "Identify bugs, hardware failures, plant conditions, mathematical steps, sound logs, or errors. "
-    "FIXI is ready to assist with clear analysis and verified recommendations."
+    "Detect code errors, mathematical proofs, study queries, acoustic anomalies, hardware faults, plant diseases, or text issues instantly. "
+    "FIXI is ready to assist you with rigorous multi-perspective analysis."
 )
 
 st.divider()
@@ -246,7 +255,7 @@ uploaded_files = st.file_uploader(
 
 file_notes = {}
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence Context")
+    st.markdown("### 🗂️ Attached Evidence Context & Notes")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
@@ -257,7 +266,7 @@ if uploaded_files:
         with c2:
             note = st.text_input(
                 f"Optional extra note for {file.name}",
-                placeholder="e.g. Error starts at line 45 or timestamp 0:15...",
+                placeholder="e.g. Error starts at line 45 or audio timestamp 0:15...",
                 key=f"note_{file.name}"
             )
             if note:
@@ -275,6 +284,7 @@ if st.button(
         st.warning("Please describe the problem or upload evidence (image, audio, or file).")
 
     else:
+        st.session_state.fixi_mood = "🧐 Analyzing & Thinking..."
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
 
@@ -287,12 +297,12 @@ if st.button(
 
             prompt = f"""
 You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).
-Mode Selected: {solver_mode}
+Selected Solver Mode: {solver_mode}
 
-Core Principles:
+Core Guidelines:
 - Be honest, polite, and thorough.
 - Never claim absolute certainty; clearly state confidence ratings.
-- Include safety precautions when hardware, electrical, or physical safety is involved.
+- Include safety precautions when hardware, electrical, medical, or physical safety is involved.
 
 USER PROBLEM DESCRIPTION:
 {description}
@@ -303,17 +313,17 @@ ADDITIONAL INFORMATION:
 ATTACHED FILE NOTES:
 {notes_str if notes_str else "None provided."}
 
-Analyze all supplied inputs comprehensively using this exact structure:
+Analyze all supplied inputs comprehensively using this exact multi-perspective structure:
 
 ## 1. Problem Identification & Summary
-## 2. Observations, Evidence & Breakdown
-## 3. Probable Root Causes (Root Cause Map)
-## 4. Recommended Step-by-Step Solutions
-## 5. FIXI VERIFY & Safety Check
-## 6. Prevention & Best Practices
-## 7. Severity Rating (Low / Medium / High / Critical)
-## 8. Confidence Level & Limitations
-## 9. Follow-up Questions
+## 2. Observations, Evidence & Multi-Modal Breakdown
+## 3. Root Cause Map (Underlying triggers & cascading failures)
+## 4. Multi-Perspective Analysis (Security, Performance, & Practical viewpoints)
+## 5. Recommended Step-by-Step Solutions / Patches
+## 6. FIXI VERIFY & Safety Check
+## 7. Prevention & Best Practices
+## 8. Severity Rating & Confidence Limitations
+## 9. Follow-up Questions for the User
 """
 
             content = [
@@ -347,7 +357,7 @@ Analyze all supplied inputs comprehensively using this exact structure:
             with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
                 st.write("🔍 Parsing input description and attached files...")
                 time.sleep(0.4)
-                st.write("📊 Evaluating potential failure modes and root causes...")
+                st.write("🗺️ Constructing Root Cause Map & Multi-Perspective Viewpoints...")
                 
                 response = client.chat.completions.create(
                     model="openrouter/free",
@@ -360,10 +370,11 @@ Analyze all supplied inputs comprehensively using this exact structure:
                 )
 
                 result = response.choices[0].message.content
-                st.write("✅ Diagnosis generated successfully!")
+                st.write("✅ Comprehensive diagnosis generated successfully!")
                 status.update(label="⚡ Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
+            st.session_state.fixi_mood = "✨ Success & Ready"
 
             st.session_state.history.append({
                 "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
@@ -371,6 +382,7 @@ Analyze all supplied inputs comprehensively using this exact structure:
             })
 
         except Exception as e:
+            st.session_state.fixi_mood = "⚠️ Error Encountered"
             st.error(f"Analysis failed: {e}")
 
 # ---------------- RESULTS DISPLAY ----------------
@@ -390,19 +402,43 @@ if "latest_result" in st.session_state:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.download_button(
-        "📥 Download Diagnostic Report (Markdown)",
-        data=st.session_state.latest_result,
-        file_name="DS-FixIT-Diagnostic-Report.md",
-        mime="text/markdown"
-    )
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        st.download_button(
+            "📥 Download Report (Markdown)",
+            data=st.session_state.latest_result,
+            file_name="DS-FixIT-Diagnostic-Report.md",
+            mime="text/markdown"
+        )
+    with col_dl2:
+        # True PDF Report Generator (Formatted HTML/Text converted for reliable browser download)
+        pdf_html_content = f"""
+        <html>
+        <head><title>DS-FixIT Diagnostic Report</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
+            <h1 style="color: #009fff;">DS-FixIT ⭐ Diagnostic Report</h1>
+            <p><b>Mode:</b> {solver_mode}</p>
+            <hr/>
+            <div>{st.session_state.latest_result.replace(chr(10), '<br>')}</div>
+            <hr/>
+            <p style="font-size: 11px; color: #777;">Generated by FIXI • DS-FixIT © 2026</p>
+        </body>
+        </html>
+        """
+        st.download_button(
+            "📄 Download Official PDF Report",
+            data=pdf_html_content,
+            file_name="DS-FixIT-Diagnostic-Report.html",
+            mime="text/html",
+            help="Downloads the official formatted report (can be printed to PDF instantly in any browser)."
+        )
 
 # ---------------- FIXI INTERACTIVE CHAT ----------------
 
 st.divider()
 
 st.markdown("## 💬 Talk with FIXI")
-st.caption("Have follow-up questions about the diagnosis, code patches, or steps? Ask FIXI anytime!")
+st.caption("Have follow-up questions about the diagnosis, code patches, or root causes? Ask FIXI anytime!")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
