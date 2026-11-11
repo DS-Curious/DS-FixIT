@@ -118,4 +118,6 @@ with st.sidebar:
     <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #009fff;">
         <span style="font-size: 38px;">🔮</span><br>
         <b style="color: #009fff; font-size: 18px;">FIXI</b><br>
-        <span style="font-size: 1
+        <span style="font-size: 12px; color: #555;"><i>Status: {st.session_state.fixi_mood}</i></span><br><br>
+        <span class="tech-badge">Honest</span> 
+        <span class="
