@@ -17,7 +17,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Base Light Theme Gradient */
 .stApp {
     background: linear-gradient(
         135deg,
@@ -38,9 +37,7 @@ st.markdown("""
 .main-title {
     font-size: 48px;
     font-weight: 900;
-    background: linear-gradient(
-        90deg, #009fff, #ec2f4b
-    );
+    background: linear-gradient(90deg, #009fff, #ec2f4b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 1px;
@@ -115,34 +112,29 @@ with st.sidebar:
 
     st.divider()
 
-    # FIXI Companion
     st.markdown("### 🤖 FIXI Companion")
 
     st.markdown(f"""
-    <div style="background: rgba(0, 159, 255, 0.08);
-                padding: 14px;
-                border-radius: 12px;
-                text-align: center;
-                border: 1px solid #009fff;">
-
+    <div style="
+        background: rgba(0, 159, 255, 0.08);
+        padding: 14px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #009fff;
+    ">
         <span style="font-size: 38px;">🔮</span><br>
-
         <b style="color: #009fff; font-size: 18px;">FIXI</b><br>
-
         <span style="font-size: 12px; color: #555;">
             <i>Status: {st.session_state.fixi_mood}</i>
         </span><br><br>
-
         <span class="tech-badge">Honest</span>
         <span class="tech-badge">Polite</span>
         <span class="tech-badge">Multi-Perspective</span>
-
     </div>
     """, unsafe_allow_html=True)
 
     st.write("")
 
-    # Specialized Solvers
     st.markdown("### 🛠️ Specialized Solvers")
 
     solver_mode = st.selectbox(
@@ -162,7 +154,6 @@ with st.sidebar:
 
     st.divider()
 
-    # FIXI Memory Vault
     st.markdown("### 🧠 FIXI Memory Vault")
 
     search_query = st.text_input(
@@ -177,8 +168,7 @@ with st.sidebar:
     else:
 
         filtered_history = [
-            item
-            for item in st.session_state.history
+            item for item in st.session_state.history
             if search_query.lower() in item["title"].lower()
             or search_query.lower() in item["result"].lower()
         ] if search_query else st.session_state.history
@@ -194,7 +184,6 @@ with st.sidebar:
 
     st.divider()
 
-    # About DS-FixIT
     with st.expander("ℹ️ About DS-FixIT & Creator"):
 
         st.write(
@@ -204,7 +193,6 @@ with st.sidebar:
 
         st.write("**Creator:** J.P. Dheepak Saianand")
         st.write("**Companion:** FIXI")
-
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- DARK MODE OVERRIDE ----------------
@@ -213,7 +201,6 @@ if st.session_state.dark_mode:
 
     st.markdown("""
     <style>
-
     .stApp {
         background: linear-gradient(
             135deg, #090d16, #111827, #1f1118
@@ -240,9 +227,10 @@ if st.session_state.dark_mode:
         color: #f9fafb !important;
     }
 
-    /* NORMAL DARK MODE TEXTBOXES */
+    /* STANDARD INPUTS */
 
-    input, textarea,
+    input,
+    textarea,
     [data-baseweb="input"] div,
     [data-baseweb="base-input"],
     [data-baseweb="textarea"] {
@@ -256,42 +244,85 @@ if st.session_state.dark_mode:
         opacity: 1 !important;
     }
 
-    /* FIX 1: UPLOAD LOGO VISIBILITY */
+    /* UPLOAD AREA - PRESERVE ORIGINAL ICON */
 
-    [data-testid="stFileUploader"] section button {
+    [data-testid="stFileUploader"] {
         color: #f9fafb !important;
-        background-color: #1e293b !important;
-        border-color: #009fff !important;
-    }
-
-    [data-testid="stFileUploader"] section button svg {
-        color: #f9fafb !important;
-        fill: #f9fafb !important;
-        stroke: #f9fafb !important;
     }
 
     [data-testid="stFileUploader"] section {
-        background-color: #1e293b !important;
-        border-color: #009fff !important;
-    }
-
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploader"] svg {
-        color: #f9fafb !important;
-    }
-
-    /* FIX 2: FIXI FOLLOW-UP CHAT INPUT */
-
-    [data-testid="stChatInput"] {
-        background-color: #1e293b !important;
-        border: 1px solid #009fff !important;
+        background: #1e293b !important;
+        border: 1px dashed #009fff !important;
         border-radius: 12px !important;
     }
 
+    [data-testid="stFileUploader"] section button {
+        background: linear-gradient(
+            90deg, #009fff, #ec2f4b
+        ) !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    [data-testid="stFileUploader"] section button p {
+        color: #ffffff !important;
+    }
+
+    /* Do not override SVG fill/stroke.
+       Streamlit retains its native upload icon. */
+
+
+    /* FIXI FOLLOW-UP CHAT INPUT */
+
+    [data-testid="stChatInput"] {
+        background: #1e293b !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stChatInput"] > div {
+        background: #1e293b !important;
+        border: 1px solid #009fff !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    [data-testid="stChatInput"] [data-baseweb="textarea"] {
+        background: #1e293b !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    [data-testid="stChatInput"] [data-baseweb="base-input"] {
+        background: #1e293b !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
     [data-testid="stChatInput"] textarea {
-        background-color: #1e293b !important;
+        background: #1e293b !important;
         color: #f9fafb !important;
         caret-color: #009fff !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stChatInput"] textarea:focus {
+        background: #1e293b !important;
+        color: #f9fafb !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stChatInput"] [data-baseweb="textarea"]:focus-within {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
     [data-testid="stChatInput"] textarea::placeholder {
@@ -300,13 +331,14 @@ if st.session_state.dark_mode:
     }
 
     [data-testid="stChatInput"] button {
+        background: transparent !important;
         color: #009fff !important;
-        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
     [data-testid="stChatInput"] button svg {
         color: #009fff !important;
-        fill: #009fff !important;
     }
 
     </style>
@@ -342,7 +374,6 @@ st.markdown("## 🚀 What's the problem today?")
 col_desc, col_extra = st.columns(2)
 
 with col_desc:
-
     description = st.text_area(
         "Describe your problem",
         placeholder="Explain what's happening or paste code/equations/errors...",
@@ -350,7 +381,6 @@ with col_desc:
     )
 
 with col_extra:
-
     additional_info = st.text_area(
         "Additional Information (Optional Context)",
         placeholder="Provide environmental factors, OS, previous attempts, error logs...",
@@ -383,16 +413,9 @@ if uploaded_files:
         with c1:
 
             if file.type.startswith("image/"):
-                st.image(
-                    file,
-                    caption=file.name,
-                    width=160
-                )
-
+                st.image(file, caption=file.name, width=160)
             else:
-                st.write(
-                    f"📁 **{file.name}** ({file.type or 'file'})"
-                )
+                st.write(f"📁 **{file.name}** ({file.type or 'file'})")
 
         with c2:
 
@@ -476,8 +499,6 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
                 }
             ]
 
-            # Process uploaded files
-
             for file in uploaded_files:
 
                 if file.type.startswith("image/"):
@@ -486,12 +507,10 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
                         file.getvalue()
                     ).decode("utf-8")
 
-                    mime = file.type
-
                     content.append({
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:{mime};base64,{encoded}"
+                            "url": f"data:{file.type};base64,{encoded}"
                         }
                     })
 
@@ -515,8 +534,6 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
 
                     except Exception:
                         pass
-
-            # Thinking Interface
 
             with st.status(
                 "🧠 FIXI Thinking Interface - Processing Problem...",
@@ -543,9 +560,7 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
 
                 result = response.choices[0].message.content
 
-                st.write(
-                    "✅ Comprehensive diagnosis generated successfully!"
-                )
+                st.write("✅ Comprehensive diagnosis generated successfully!")
 
                 status.update(
                     label="🚀 Diagnosis Ready!",
@@ -554,14 +569,12 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
                 )
 
             st.session_state.latest_result = result
-
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
 
             st.session_state.history.append({
                 "title": description[:40] or (
                     uploaded_files[0].name
-                    if uploaded_files
-                    else "Diagnostic Session"
+                    if uploaded_files else "Diagnostic Session"
                 ),
                 "result": result
             })
@@ -569,7 +582,6 @@ Analyze all supplied inputs comprehensively using this exact multi-perspective s
         except Exception as e:
 
             st.session_state.fixi_mood = "⚠️ Error Encountered"
-
             st.error(f"Analysis failed: {e}")
 
 # ---------------- RESULTS DISPLAY ----------------
@@ -607,7 +619,6 @@ if "latest_result" in st.session_state:
         <head>
             <title>DS-FixIT Diagnostic Report</title>
         </head>
-
         <body style="font-family: Arial, sans-serif;
                      padding: 30px;
                      color: #333;">
@@ -617,7 +628,6 @@ if "latest_result" in st.session_state:
             </h1>
 
             <p><b>Mode:</b> {solver_mode}</p>
-
             <hr/>
 
             <div>
@@ -654,23 +664,15 @@ st.caption(
     "or root causes? Ask FIXI anytime!"
 )
 
-# Display previous conversation messages
-
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
-
         st.markdown(message["content"])
 
-
-# Follow-up question input
 
 question = st.chat_input(
     "Ask FIXI a follow-up question..."
 )
-
-
-# Process follow-up question
 
 if question:
 
@@ -698,15 +700,12 @@ if question:
                 {
                     "role": "system",
                     "content": (
-                        "You are FIXI, the polite, honest, and helpful AI "
-                        "companion of DS-FixIT. "
-                        "Answer follow-up questions using the diagnostic "
-                        "context below. "
-                        "Admit uncertainty when evidence is incomplete "
+                        "You are FIXI, the polite, honest, and helpful AI companion "
+                        "of DS-FixIT. Answer follow-up questions using the diagnostic "
+                        "context below. Admit uncertainty when evidence is incomplete "
                         "and remain polite and clear."
                     )
                 },
-
                 {
                     "role": "assistant",
                     "content": (
@@ -716,15 +715,11 @@ if question:
                 }
             ]
 
-            # Include recent conversation history
-
             conversation.extend(
                 st.session_state.messages[-10:]
             )
 
-            with st.spinner(
-                "🚀 FIXI is typing a response..."
-            ):
+            with st.spinner("🚀 FIXI is typing a response..."):
 
                 response = client.chat.completions.create(
                     model="openrouter/free",
@@ -742,6 +737,4 @@ if question:
 
         except Exception as e:
 
-            st.error(
-                f"FIXI chat failed: {e}"
-            )
+            st.error(f"FIXI chat failed: {e}")
