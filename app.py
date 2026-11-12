@@ -62,7 +62,7 @@ div.stButton > button:hover {
 .metric-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 .box-risk-high {
@@ -149,7 +149,7 @@ if "messages" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
-# ---------------- SIDEBAR ----------------
+# ---------------- SIDEBAR (ALL 9 SOLVERS & MEMORY VAULT) ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
@@ -189,7 +189,9 @@ with st.sidebar:
     st.markdown("### 🧠 FIXI Memory Vault")
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
 
-    if st.session_state.history:
+    if not st.session_state.history:
+        st.caption("No history logged yet.")
+    else:
         filtered_history = [
             item for item in st.session_state.history 
             if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
@@ -198,6 +200,14 @@ with st.sidebar:
         for i, item in enumerate(reversed(filtered_history[-10:])):
             if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
                 st.session_state.latest_result = item["result"]
+
+    st.divider()
+
+    with st.expander("ℹ️ About DS-FixIT & Creator"):
+        st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
+        st.write("**Creator:** J.P. Dheepak Saianand")
+        st.write("**Companion:** FIXI")
+        st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- HEADER ----------------
 
@@ -350,7 +360,6 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         risk_class = "box-risk-low"
         risk_symbol = "🟢 LOW RISK"
 
-    # Render metric boxes cleanly without trailing whitespace containers
     st.markdown(f"""
     <div class="metric-row">
         <div class="{risk_class}">{risk_symbol}</div>
@@ -358,13 +367,16 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    st.markdown(clean_report)
-    st.markdown("</div>", unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="result-card">', unsafe_allow_html=True)
+        st.markdown(clean_report)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.write("")
 
     c1, c2 = st.columns(2)
     with c1:
-        st.download_button("📥 Download Report (.md)", data=clean_report, file_name="Report.md", mime="text/markdown")
+        st.download_button("📥 Download Report (.md)", data=clean_report, file_name="Report.md", mime="text/markdown", key="dl_md_rep")
     with c2:
         pdf_html_content = f"""
         <html>
@@ -379,7 +391,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         </body>
         </html>
         """
-        st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html")
+        st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html", key="dl_html_rep")
 
 # ---------------- INTERACTIVE CHAT ----------------
 
