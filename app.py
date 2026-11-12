@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.3")
+    st.caption("Universal AI Problem Detector • v5.4")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -192,6 +192,8 @@ with st.sidebar:
             if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
                 st.session_state.latest_result = item["result"]
                 st.session_state.active_description = item.get("description", "")
+                st.session_state.active_report = item["result"]
+                st.rerun()
 
     st.divider()
 
@@ -205,7 +207,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal AI vision inspection with fully linked context memory.")
+st.write("Instant multi-modal AI vision inspection with fully linked context memory & history vault.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -350,7 +352,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         risk_symbol = "🔴 HIGH RISK"
     elif "LOW" in risk_display:
         risk_class = "box-risk-low"
-        risk_symbol, "🟢 LOW RISK"
+        risk_symbol = "🟢 LOW RISK"
 
     st.markdown(f"""
     <div class="metric-row">
@@ -400,7 +402,6 @@ if question:
             api_key = st.secrets["OPENROUTER_APIKEY"]
             client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
             
-            # Inject context of the active scan/report into the system prompt for follow-ups
             active_desc = st.session_state.get("active_description", "Previous analysis")
             active_rep = st.session_state.get("active_report", st.session_state.latest_result)
             
