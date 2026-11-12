@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.9")
+    st.caption("Universal AI Problem Detector • v4.0")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -204,7 +204,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal diagnosis with bright metrics and visual error highlighting.")
+st.write("Instant multi-modal diagnosis with precision HUD reticle targeting.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -228,22 +228,51 @@ file_notes = {}
 prepared_images = []
 
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence & FIXI-Vision Analysis")
+    st.markdown("### 🗂️ Attached Evidence & Precision FIXI-Vision HUD")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
                 img = Image.open(file).convert("RGB")
-                draw = ImageDraw.Draw(img)
                 w, h = img.size
-                draw.rectangle([w*0.1, h*0.1, w*0.9, h*0.9], outline="#ef4444", width=max(3, int(w*0.01)))
-                draw.text((w*0.12, h*0.12), "FIXI-TARGET", fill="#ef4444")
-                st.image(img, caption=f"Highlighted: {file.name}", width=220)
+                
+                # Let user choose where the problem/fracture is located
+                focus_area = st.selectbox(
+                    f"🎯 Target Focus Zone for {file.name}",
+                    ["Center Focal Point", "Bottom Half (e.g. Fractures)", "Top Half", "Left Side", "Right Side"],
+                    key=f"focus_{file.name}"
+                )
+
+                draw = ImageDraw.Draw(img)
+                
+                # Calculate precise targeting box based on user selection
+                if "Bottom Half" in focus_area:
+                    box = [w*0.2, h*0.5, w*0.8, h*0.95]
+                elif "Top Half" in focus_area:
+                    box = [w*0.2, h*0.05, w*0.8, h*0.5]
+                elif "Left Side" in focus_area:
+                    box = [w*0.05, h*0.2, w*0.5, h*0.8]
+                elif "Right Side" in focus_area:
+                    box = [w*0.5, h*0.2, w*0.95, h*0.8]
+                else:  # Center
+                    box = [w*0.3, h*0.3, w*0.7, h*0.7]
+
+                # Draw high-tech Iron Man HUD targeting reticle & crosshairs around the specific zone
+                draw.rectangle(box, outline="#ef4444", width=max(3, int(w*0.008)))
+                
+                # Draw crosshair in center of target box
+                cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+                draw.line([(cx - 15, cy), (cx + 15, cy)], fill="#ef4444", width=3)
+                draw.line([(cx, cy - 15), (cx, cy + 15)], fill="#ef4444", width=3)
+                
+                draw.text((box[0] + 5, box[1] + 5), "FIXI-LOCKED", fill="#ef4444")
+                
+                st.image(img, caption=f"Targeted: {file.name} ({focus_area})", width=240)
                 prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
         with c2:
-            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Error at line 45...", key=f"note_{file.name}")
+            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Oblique fracture at distal tibia...", key=f"note_{file.name}")
             if note:
                 file_notes[file.name] = note
 
@@ -266,11 +295,12 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "CRITICAL TAG REQUIREMENTS:\n"
                 "You MUST start your response with these exact lines:\n"
                 "RISK_LEVEL: [High / Medium / Low]\n"
-                "CONFIDENCE_SCORE: [e.g. 92%]\n\n"
+                "CONFIDENCE_SCORE: [e.g. 95%]\n\n"
                 "CRITICAL FORMATTING GUIDELINES:\n"
-                "- Keep explanations punchy and direct. Avoid long, exhausting paragraphs.\n"
-                "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items so they naturally catch the eye.\n"
-                "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n\n"
+                "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
+                "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
+                "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
+                "- Pay close attention to the targeted HUD box/reticle on the uploaded image to diagnose the exact anomaly (e.g. fracture, defect, or error).\n\n"
                 f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
                 f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
                 "Provide sections:\n"
@@ -304,7 +334,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             pass
 
             with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
-                st.write("🔍 Evaluating visual reticles and diagnostics...")
+                st.write("🔍 Evaluating precision HUD target reticles...")
                 response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
                 result = response.choices[0].message.content
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
@@ -358,7 +388,6 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
     </div>
     """, unsafe_allow_html=True)
 
-    # Render report directly without the boxed container bar
     st.markdown(clean_report)
 
     st.write("")
