@@ -3,6 +3,7 @@ import requests
 import base64
 import mimetypes
 import time
+from PIL import Image, ImageDraw, ImageOps
 from openai import OpenAI
 
 st.set_page_config(
@@ -12,11 +13,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING (THEME-AWARE DYNAMIC GRADIENT) ----------------
+# ---------------- CONFIG & STYLING (IRON MAN THEME & BRIGHT CARDS) ----------------
 
 st.markdown("""
 <style>
-/* Dynamic Theme-Aware Styling */
 .stApp {
     background-color: var(--background-color);
     color: var(--text-color);
@@ -30,9 +30,7 @@ st.markdown("""
 .main-title {
     font-size: 48px;
     font-weight: 900;
-    background: linear-gradient(
-        90deg, #009fff, #ec2f4b
-    );
+    background: linear-gradient(90deg, #009fff, #ec2f4b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 1px;
@@ -58,6 +56,57 @@ div.stButton > button {
 div.stButton > button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(236, 47, 75, 0.35);
+}
+
+/* Bright Structured Metric Boxes */
+.metric-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.box-risk-high {
+    flex: 1;
+    background: linear-gradient(135deg, #7f1d1d, #ef4444);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.box-risk-med {
+    flex: 1;
+    background: linear-gradient(135deg, #78350f, #f59e0b);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.box-risk-low {
+    flex: 1;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.box-confidence {
+    flex: 1;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .result-card {
@@ -100,17 +149,14 @@ if "messages" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
-# ---------------- SIDEBAR (TECHY & FIXI PROFILE) ----------------
+# ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.4")
-
+    st.caption("Universal AI Problem Detector • v3.5")
     st.divider()
 
-    # FIXI Dynamic Avatar & Expression
     st.markdown("### 🤖 FIXI Companion")
-    
     st.markdown(f"""
     <div class="fixi-box">
         <span style="font-size: 38px;">🔮</span><br>
@@ -123,8 +169,6 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.write("")
-
-    # Specialized Solvers (All 9 included)
     st.markdown("### 🛠️ Specialized Solvers")
     solver_mode = st.selectbox(
         "Select Domain Mode",
@@ -142,316 +186,186 @@ with st.sidebar:
     )
 
     st.divider()
-
-    # Conversation Search & Memory Vault
     st.markdown("### 🧠 FIXI Memory Vault")
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
 
-    if not st.session_state.history:
-        st.caption("No history logged yet.")
-    else:
+    if st.session_state.history:
         filtered_history = [
             item for item in st.session_state.history 
             if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
         ] if search_query else st.session_state.history
 
         for i, item in enumerate(reversed(filtered_history[-10:])):
-            if st.button(
-                f"📌 {item['title'][:25]}...",
-                key=f"history_{i}",
-                use_container_width=True
-            ):
+            if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
                 st.session_state.latest_result = item["result"]
-
-    st.divider()
-
-    with st.expander("ℹ️ About DS-FixIT & Creator"):
-        st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
-        st.write("**Creator:** J.P. Dheepak Saianand")
-        st.write("**Companion:** FIXI")
-        st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- HEADER ----------------
 
-st.markdown(
-    '<div class="main-title">DS-FixIT 🚀</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>',
-    unsafe_allow_html=True
-)
-
-st.write(
-    "Detect code errors, mathematical proofs, study queries, acoustic anomalies, hardware faults, plant diseases, or text issues instantly. "
-    "FIXI is ready to assist you with rigorous multi-perspective analysis."
-)
-
+st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
+st.write("Instant multi-modal diagnosis with bright metrics and visual error highlighting.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
 
 st.markdown("## 🚀 What's the problem today?")
-
 col_desc, col_extra = st.columns(2)
 
 with col_desc:
-    description = st.text_area(
-        "Describe your problem",
-        placeholder="Explain what's happening or paste code/equations/errors...",
-        height=140
-    )
+    description = st.text_area("Describe your problem", placeholder="Explain issue or paste code/equations...", height=140)
 
 with col_extra:
-    additional_info = st.text_area(
-        "Additional Information (Optional Context)",
-        placeholder="Provide environmental factors, OS, previous attempts, error logs...",
-        height=140
-    )
+    additional_info = st.text_area("Additional Information (Optional Context)", placeholder="Environment, OS, error logs...", height=140)
 
 uploaded_files = st.file_uploader(
     "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
-    type=[
-        "png", "jpg", "jpeg", "webp",
-        "pdf", "txt", "csv", "py", "json",
-        "mp3", "wav", "m4a"
-    ],
+    type=["png", "jpg", "jpeg", "webp", "pdf", "txt", "csv", "py", "json", "mp3", "wav", "m4a"],
     accept_multiple_files=True
 )
 
 file_notes = {}
+processed_images = []
+
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence Context & Notes")
+    st.markdown("### 🗂️ Attached Evidence & FIXI-Vision Analysis")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
-                st.image(file, caption=file.name, width=160)
+                # FIXI-Vision: Highlight image with targeting reticle overlay
+                img = Image.open(file).convert("RGB")
+                draw = ImageDraw.Draw(img)
+                w, h = img.size
+                # Draw high-tech Iron Man style red/gold warning bounding box / reticle
+                draw.rectangle([w*0.1, h*0.1, w*0.9, h*0.9], outline="#ef4444", width=max(3, int(w*0.01))))
+                draw.text((w*0.12, h*0.12), "FIXI-TARGET", fill="#ef4444")
+                st.image(img, caption=f"Highlighted: {file.name}", width=220)
+                processed_images.append((file.name, img))
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
         with c2:
-            note = st.text_input(
-                f"Optional extra note for {file.name}",
-                placeholder="e.g. Error starts at line 45 or audio timestamp 0:15...",
-                key=f"note_{file.name}"
-            )
+            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Error at line 45...", key=f"note_{file.name}")
             if note:
                 file_notes[file.name] = note
 
 # ---------------- ANALYSIS ENGINE ----------------
 
-if st.button(
-    "🚀 ANALYSE WITH FIXI",
-    type="primary",
-    use_container_width=True
-):
-
+if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
     if not description.strip() and not uploaded_files:
-        st.warning("Please describe the problem or upload evidence (image, audio, or file).")
-
+        st.warning("Please describe the problem or upload evidence.")
     else:
         st.session_state.fixi_mood = "💻 Processing & Analyzing..."
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
-
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=api_key
-            )
+            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
 
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = (
-                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).\n"
+                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT.\n"
                 f"Selected Solver Mode: {solver_mode}\n\n"
-                "Core Guidelines:\n"
-                "- Be honest, polite, and thorough.\n"
-                "- Never claim absolute certainty; clearly state confidence ratings.\n"
-                "- Include safety precautions when hardware, electrical, medical, or physical safety is involved.\n\n"
-                f"USER PROBLEM DESCRIPTION:\n{description}\n\n"
-                f"ADDITIONAL INFORMATION:\n{additional_info}\n\n"
-                f"ATTACHED FILE NOTES:\n{notes_str if notes_str else 'None provided.'}\n\n"
-                "Analyze all supplied inputs comprehensively using this exact multi-perspective structure:\n\n"
-                "## 1. Problem Identification & Summary\n"
-                "## 2. Observations, Evidence & Multi-Modal Breakdown\n"
-                "## 3. Root Cause Map (Underlying triggers & cascading failures)\n"
-                "## 4. Multi-Perspective Analysis (Security, Performance, & Practical viewpoints)\n"
-                "## 5. Recommended Step-by-Step Solutions / Patches\n"
-                "## 6. FIXI VERIFY & Safety Check\n"
-                "## 7. Prevention & Best Practices\n"
-                "## 8. Severity Rating & Confidence Limitations\n"
-                "## 9. Follow-up Questions for the User"
+                "CRITICAL OUTPUT FORMAT:\
+                You must begin your response with these exact structured tags on the very first lines:\n"
+                "RISK_LEVEL: [High / Medium / Low]\n"
+                "CONFIDENCE_SCORE: [e.g. 95%]\n\n"
+                "CRITICAL MATH RULE: Always use LaTeX ($...$ or $$...$$) for equations, powers, and differentiation.\n\n"
+                f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
+                f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
+                "Provide sections:\n"
+                "## 1. Quick Summary\n"
+                "## 2. Root Cause\n"
+                "## 3. Step-by-Step Solution\n"
+                "## 4. Safety & Verification\n"
             )
 
-            content = [
-                {
-                    "type": "text",
-                    "text": prompt
-                }
-            ]
-
+            content = [{"type": "text", "text": prompt}]
             for file in uploaded_files:
                 if file.type.startswith("image/"):
                     encoded = base64.b64encode(file.getvalue()).decode("utf-8")
-                    mime = file.type
-                    content.append({
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime};base64,{encoded}"
-                        }
-                    })
-                elif file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
-                    try:
-                        file_text = file.getvalue().decode("utf-8")
-                        content.append({
-                            "type": "text",
-                            "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
-                        })
-                    except Exception:
-                        pass
+                    content.append({"type": "image_url", "image_url": {"url": f"data:{file.type};base64,{encoded}"}})
 
-            # Thinking Interface Expander
-            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
-                st.write("🔍 Parsing input description and attached files...")
-                time.sleep(0.4)
-                st.write("🗺️ Constructing Root Cause Map & Multi-Perspective Viewpoints...")
-                
-                response = client.chat.completions.create(
-                    model="openrouter/free",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": content
-                        }
-                    ]
-                )
-
+            with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
+                st.write("🔍 Evaluating metrics and visual features...")
+                response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
                 result = response.choices[0].message.content
-                st.write("✅ Comprehensive diagnosis generated successfully!")
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
-
             st.session_state.history.append({
-                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
+                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Session"),
                 "result": result
             })
-
         except Exception as e:
             st.session_state.fixi_mood = "⚠️ Error Encountered"
             st.error(f"Analysis failed: {e}")
 
-# ---------------- RESULTS DISPLAY ----------------
+# ---------------- RESULTS DISPLAY WITH BRIGHT BOXES ----------------
 
 if "latest_result" in st.session_state and st.session_state.latest_result:
-
     st.divider()
-
     st.markdown("## 🔍 FIXI's Diagnostic Report")
 
-    st.markdown(
-        '<div class="result-card">',
-        unsafe_allow_html=True
-    )
+    res_text = str(st.session_state.latest_result)
+    
+    # Extract Risk and Confidence dynamically
+    risk_display = "MEDIUM"
+    conf_display = "90%"
+    
+    for line in res_text.split('\n'):
+        if "RISK_LEVEL:" in line:
+            risk_display = line.replace("RISK_LEVEL:", "").strip().upper()
+        if "CONFIDENCE_SCORE:" in line:
+            conf_display = line.replace("CONFIDENCE_SCORE:", "").strip()
 
-    st.markdown(str(st.session_state.latest_result))
+    # Determine risk box class
+    risk_class = "box-risk-med"
+    risk_symbol = "🟡 MEDIUM RISK"
+    if "HIGH" in risk_display:
+        risk_class = "box-risk-high"
+        risk_symbol = "🔴 HIGH RISK"
+    elif "LOW" in risk_display:
+        risk_class = "box-risk-low"
+        risk_symbol = "🟢 LOW RISK"
 
+    # Render Bright Colored Boxes
+    st.markdown(f"""
+    <div class="metric-row">
+        <div class="{risk_class}">{risk_symbol}</div>
+        <div class="box-confidence">🎯 CONFIDENCE: {conf_display}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+    st.markdown(res_text)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    col_dl1, col_dl2 = st.columns(2)
-    with col_dl1:
-        st.download_button(
-            label="📥 Download Report (Markdown)",
-            data=str(st.session_state.latest_result),
-            file_name="DS-FixIT-Diagnostic-Report.md",
-            mime="text/markdown",
-            key="download_markdown_btn"
-        )
-    with col_dl2:
-        report_text = str(st.session_state.latest_result)
-        pdf_html_content = f"""
-        <html>
-        <head><title>DS-FixIT Diagnostic Report</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
-            <h1 style="color: #009fff;">DS-FixIT 🚀 Diagnostic Report</h1>
-            <p><b>Mode:</b> {solver_mode}</p>
-            <hr/>
-            <div>{report_text.replace(chr(10), '<br>')}</div>
-            <hr/>
-            <p style="font-size: 11px; color: #777;">Generated by FIXI • DS-FixIT © 2026</p>
-        </body>
-        </html>
-        """
-        st.download_button(
-            label="📄 Download Official PDF Report",
-            data=pdf_html_content,
-            file_name="DS-FixIT-Diagnostic-Report.html",
-            mime="text/html",
-            key="download_html_btn",
-            help="Downloads the official formatted report (can be printed to PDF instantly in any browser)."
-        )
+    c1, c2 = st.columns(2)
+    with c1:
+        st.download_button("📥 Download Report (.md)", data=res_text, file_name="Report.md", mime="text/markdown")
+    with c2:
+        st.download_button("📄 Download HTML Report", data=f"<html><body>{res_text.replace(chr(10), '<br>')}</body></html>", file_name="Report.html", mime="text/html")
 
-# ---------------- FIXI INTERACTIVE CHAT ----------------
+# ---------------- INTERACTIVE CHAT ----------------
 
 st.divider()
-
 st.markdown("## 💬 Talk with FIXI")
-st.caption("Have follow-up questions about the diagnosis, code patches, or root causes? Ask FIXI anytime!")
-
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 question = st.chat_input("Ask FIXI a follow-up question...")
-
 if question:
     if "latest_result" not in st.session_state:
-        st.warning("Please run an analysis first so FIXI has context!")
+        st.warning("Run an analysis first!")
     else:
-        st.session_state.messages.append({
-            "role": "user",
-            "content": question
-        })
-
+        st.session_state.messages.append({"role": "user", "content": question})
         try:
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=st.secrets["OPENROUTER_APIKEY"]
-            )
-
-            conversation = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT. "
-                        "Answer follow-up questions using the diagnostic context below. "
-                        "Admit uncertainty when evidence is incomplete and remain polite and clear."
-                    )
-                },
-                {
-                    "role": "assistant",
-                    "content": f"Previous diagnostic context:\n{st.session_state.latest_result}"
-                }
-            ]
-
-            conversation.extend(st.session_state.messages[-10:])
-
-            with st.spinner("🚀 FIXI is typing a response..."):
-                response = client.chat.completions.create(
-                    model="openrouter/free",
-                    messages=conversation
-                )
-
-            answer = response.choices[0].message.content
-
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": answer
-            })
-
+            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_APIKEY"])
+            conv = [{"role": "system", "content": "You are FIXI. Use LaTeX ($...$) for math equations. Be direct and concise."}]
+            conv.extend(st.session_state.messages[-10:])
+            res = client.chat.completions.create(model="openrouter/free", messages=conv)
+            st.session_state.messages.append({"role": "assistant", "content": res.choices[0].message.content})
             st.rerun()
-
         except Exception as e:
-            st.error(f"FIXI chat failed: {e}")
+            st.error(f"Chat failed: {e}")
