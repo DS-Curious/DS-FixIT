@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.0")
+    st.caption("Universal AI Problem Detector • v5.1")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -204,7 +204,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal diagnosis with dynamic percentage-scaled HUD reticle targeting.")
+st.write("Instant multi-modal diagnosis with precise anatomical HUD targeting.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -228,7 +228,7 @@ file_notes = {}
 prepared_images = []
 
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence & Dynamic FIXI-Vision HUD")
+    st.markdown("### 🗂️ Attached Evidence & Precision FIXI-Vision HUD")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
@@ -236,48 +236,57 @@ if uploaded_files:
                 img = Image.open(file).convert("RGB")
                 w, h = img.size
                 
-                # Dynamic quadrant/zone selector that works across any image dimension
+                # Refined anatomical zone selection
                 focus_zone = st.selectbox(
-                    f"🎯 Select Anomaly Zone for {file.name}",
+                    f"🎯 Select Target Zone for {file.name}",
                     [
+                        "Upper Shaft / Mid-Bone Fracture Zone",
+                        "Lower Joint / Ankle / Distal Break",
                         "Center Core Anomaly",
-                        "Lower Section (Fractures / Bottom Defects)",
-                        "Upper Section (Header / Top Errors)",
-                        "Left Quadrant",
-                        "Right Quadrant"
+                        "Full Image Scan (No Overlay Box)"
                     ],
                     key=f"zone_{file.name}"
                 )
 
                 draw = ImageDraw.Draw(img)
                 
-                # Percentage-based bounding box calculation (scales perfectly to any w, h)
-                if "Lower Section" in focus_zone:
-                    box = [w * 0.25, h * 0.45, w * 0.75, h * 0.90]
-                elif "Upper Section" in focus_zone:
-                    box = [w * 0.25, h * 0.10, w * 0.75, h * 0.55]
-                elif "Left Quadrant" in focus_zone:
-                    box = [w * 0.10, h * 0.25, w * 0.55, h * 0.75]
-                elif "Right Quadrant" in focus_zone:
-                    box = [w * 0.45, h * 0.25, w * 0.90, h * 0.75]
-                else:  # Center
-                    box = [w * 0.30, h * 0.30, w * 0.70, h * 0.70]
+                if "Full Image Scan" not in focus_zone:
+                    # Precise coordinate mapping based on selected anatomical zone
+                    if "Upper Shaft" in focus_zone:
+                        box = [w * 0.22, h * 0.12, w * 0.72, h * 0.58]
+                    elif "Lower Joint" in focus_zone:
+                        box = [w * 0.25, h * 0.50, w * 0.75, h * 0.92]
+                    else:  # Center
+                        box = [w * 0.30, h * 0.30, w * 0.70, h * 0.70]
 
-                # Draw Iron Man HUD precision targeting box and crosshairs
-                draw.rectangle(box, outline="#ef4444", width=max(4, int(w * 0.01)))
-                
-                cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-                draw.line([(cx - 25, cy), (cx + 25, cy)], fill="#ef4444", width=4)
-                draw.line([(cx, cy - 25), (cx, cy + 25)], fill="#ef4444", width=4)
-                
-                draw.text((box[0] + 8, box[1] + 8), "FIXI-LOCKED", fill="#ef4444")
+                    # Draw Iron Man HUD precision targeting box and crosshairs
+                    draw.rectangle(box, outline="#ef4444", width=max(4, int(w * 0.01)))
+                    
+                    cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+                    draw.line([(cx - 25, cy), (cx + 25, cy)], fill="#ef4444", width=4)
+                    draw.line([(cx, cy - 25), (cx, cy + 25)], fill="#ef4444", width=4)
+                    
+                    draw.text((box[0] + 8, box[1] + 8), "FIXI-LOCKED", fill="#ef4444")
+                else:
+                    # Pristine tactical corners for full scan mode
+                    bracket_len = min(w, h) * 0.1
+                    color = "#009fff"
+                    draw.line([(0, 0), (bracket_len, 0)], fill=color, width=4)
+                    draw.line([(0, 0), (0, bracket_len)], fill=color, width=4)
+                    draw.line([(w, 0), (w - bracket_len, 0)], fill=color, width=4)
+                    draw.line([(w, 0), (w, bracket_len)], fill=color, width=4)
+                    draw.line([(0, h), (bracket_len, h)], fill=color, width=4)
+                    draw.line([(0, h), (0, h - bracket_len)], fill=color, width=4)
+                    draw.line([(w, h), (w - bracket_len, h)], fill=color, width=4)
+                    draw.line([(w, h), (w, h - bracket_len)], fill=color, width=4)
+                    draw.text((10, 10), "FIXI-FULL SCAN", fill=color)
 
-                st.image(img, caption=f"Marked: {file.name} ({focus_zone})", width=240)
+                st.image(img, caption=f"Target: {file.name} ({focus_zone})", width=240)
                 prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
         with c2:
-            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Fracture at distal third...", key=f"note_{file.name}")
+            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Oblique fracture at distal tibia...", key=f"note_{file.name}")
             if note:
                 file_notes[file.name] = note
 
@@ -305,7 +314,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
                 "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
                 "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
-                "- Analyze the exact area inside the red HUD box and crosshairs (marked as FIXI-LOCKED) for fractures, defects, or errors.\n\n"
+                "- Analyze the exact area inside the red HUD box and crosshairs (or full scan) for fractures, defects, or errors.\n\n"
                 f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
                 f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
                 "Provide sections:\n"
@@ -339,7 +348,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             pass
 
             with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
-                st.write("🔍 Evaluating targeted HUD reticle and diagnostics...")
+                st.write("🔍 Evaluating precision HUD target reticles...")
                 response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
                 result = response.choices[0].message.content
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
