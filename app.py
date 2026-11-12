@@ -153,7 +153,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.8")
+    st.caption("Universal AI Problem Detector • v3.9")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -358,7 +358,6 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    # Using clean st.markdown for perfect font sizes and native markdown bolding
     st.markdown(clean_report)
     st.markdown("</div>", unsafe_allow_html=True)
 
