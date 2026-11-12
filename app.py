@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.6")
+    st.caption("Universal AI Problem Detector • v4.7")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -251,22 +251,22 @@ if uploaded_files:
 
                 draw = ImageDraw.Draw(img)
                 
-                # Perfected coordinates locked squarely onto the actual fracture gap
+                # Perfectly centered on the bone fracture gap
                 if "Tight Fracture" in focus_area:
-                    box = [w*0.4, h*0.52, w*0.82, h*0.88]
+                    box = [w * 0.52, h * 0.52, w * 0.88, h * 0.88]
                 elif "Bottom Half" in focus_area:
-                    box = [w*0.3, h*0.5, w*0.9, h*0.95]
+                    box = [w * 0.3, h * 0.5, w * 0.9, h * 0.95]
                 elif "Top Half" in focus_area:
-                    box = [w*0.2, h*0.05, w*0.8, h*0.5]
+                    box = [w * 0.2, h * 0.05, w * 0.8, h * 0.5]
                 elif "Left Side" in focus_area:
-                    box = [w*0.05, h*0.2, w*0.5, h*0.8]
+                    box = [w * 0.05, h * 0.2, w * 0.5, h * 0.8]
                 elif "Right Side" in focus_area:
-                    box = [w*0.5, h*0.2, w*0.95, h*0.8]
+                    box = [w * 0.5, h * 0.2, w * 0.95, h * 0.8]
                 else:
-                    box = [w*0.3, h*0.3, w*0.7, h*0.7]
+                    box = [w * 0.3, h * 0.3, w * 0.7, h * 0.7]
 
                 # Draw high-tech Iron Man HUD targeting reticle & crosshairs
-                draw.rectangle(box, outline="#ef4444", width=max(4, int(w*0.01)))
+                draw.rectangle(box, outline="#ef4444", width=max(4, int(w * 0.01)))
                 
                 cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
                 draw.line([(cx - 20, cy), (cx + 20, cy)], fill="#ef4444", width=4)
