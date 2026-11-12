@@ -143,11 +143,14 @@ if "fixi_mood" not in st.session_state:
 if "active_images" not in st.session_state:
     st.session_state.active_images = []
 
+if "active_description" not in st.session_state:
+    st.session_state.active_description = ""
+
 # ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.5")
+    st.caption("Universal AI Problem Detector • v5.6")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -197,6 +200,7 @@ with st.sidebar:
                 st.session_state.active_description = item.get("description", "")
                 st.session_state.active_report = item["result"]
                 st.session_state.active_images = item.get("images", [])
+                st.session_state.messages = item.get("messages", [])
                 st.rerun()
 
     st.divider()
@@ -211,7 +215,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal AI vision inspection with persistent evidence vault.")
+st.write("Instant multi-modal AI vision inspection with fully isolated session vaults.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -220,7 +224,7 @@ st.markdown("## 🚀 What's the problem today?")
 col_desc, col_extra = st.columns(2)
 
 with col_desc:
-    description = st.text_area("Describe your problem", placeholder="Explain issue or paste code/equations...", height=140)
+    description = st.text_area("Describe your problem", value=st.session_state.get("active_description", ""), placeholder="Explain issue or paste code/equations...", height=140)
 
 with col_extra:
     additional_info = st.text_area("Additional Information (Optional Context)", placeholder="Environment, OS, error logs...", height=140)
@@ -250,10 +254,9 @@ if uploaded_files:
             if note:
                 file_notes[file.name] = note
 elif "active_images" in st.session_state and st.session_state.active_images:
-    # Display saved images if loaded from history vault
-    st.markdown("### 🗂️ Historical Session Evidence")
+    st.markdown("### 🗂️ Loaded Session Evidence")
     for idx, img in enumerate(st.session_state.active_images):
-        st.image(img, caption=f"Loaded Evidence #{idx+1}", width=240)
+        st.image(img, caption=f"Historical Evidence #{idx+1}", width=240)
         current_prepared_images.append(img)
 
 # ---------------- ANALYSIS ENGINE ----------------
@@ -324,12 +327,15 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             st.session_state.active_description = description
             st.session_state.active_report = result
             st.session_state.active_images = current_prepared_images
+            st.session_state.messages = []  # Fresh chat for new analysis
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
+            
             st.session_state.history.append({
                 "title": description[:40] or ("Session Evidence" if current_prepared_images else "Session"),
                 "description": description,
                 "result": result,
-                "images": current_prepared_images
+                "images": current_prepared_images,
+                "messages": []
             })
             st.rerun()
         except Exception as e:
@@ -431,6 +437,11 @@ if question:
             
             res = client.chat.completions.create(model="openrouter/free", messages=conv)
             st.session_state.messages.append({"role": "assistant", "content": res.choices[0].message.content})
+            
+            # Sync back to the active history item
+            if st.session_state.history:
+                st.session_state.history[-1]["messages"] = st.session_state.messages
+                
             st.rerun()
         except Exception as e:
             st.error(f"Chat failed: {e}")
