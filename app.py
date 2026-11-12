@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.2")
+    st.caption("Universal AI Problem Detector • v5.3")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -191,6 +191,7 @@ with st.sidebar:
         for i, item in enumerate(reversed(filtered_history[-10:])):
             if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
                 st.session_state.latest_result = item["result"]
+                st.session_state.active_description = item.get("description", "")
 
     st.divider()
 
@@ -204,7 +205,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal AI vision inspection with clean, unmarred evidence analysis.")
+st.write("Instant multi-modal AI vision inspection with fully linked context memory.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -307,9 +308,12 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
+            st.session_state.active_description = description
+            st.session_state.active_report = result
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
             st.session_state.history.append({
                 "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Session"),
+                "description": description,
                 "result": result
             })
             st.rerun()
@@ -346,7 +350,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         risk_symbol = "🔴 HIGH RISK"
     elif "LOW" in risk_display:
         risk_class = "box-risk-low"
-        risk_symbol = "🟢 LOW RISK"
+        risk_symbol, "🟢 LOW RISK"
 
     st.markdown(f"""
     <div class="metric-row">
@@ -389,13 +393,28 @@ for message in st.session_state.messages:
 question = st.chat_input("Ask FIXI a follow-up question...")
 if question:
     if "latest_result" not in st.session_state:
-        st.warning("Run an analysis first!")
+        st.warning("Run an analysis first so FIXI has context!")
     else:
         st.session_state.messages.append({"role": "user", "content": question})
         try:
-            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_APIKEY"])
-            conv = [{"role": "system", "content": "You are FIXI. Use bold markdown for key takeaways. Be direct and concise."}]
+            api_key = st.secrets["OPENROUTER_APIKEY"]
+            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+            
+            # Inject context of the active scan/report into the system prompt for follow-ups
+            active_desc = st.session_state.get("active_description", "Previous analysis")
+            active_rep = st.session_state.get("active_report", st.session_state.latest_result)
+            
+            system_context = (
+                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT.\n"
+                f"Active Solver Mode: {solver_mode}\n"
+                f"Original User Problem/Context: {active_desc}\n"
+                f"Previous Diagnostic Report:\n{active_rep}\n\n"
+                "Answer the user's follow-up questions referencing this active context. Use bold markdown for key takeaways and be direct and concise."
+            )
+            
+            conv = [{"role": "system", "content": system_context}]
             conv.extend(st.session_state.messages[-10:])
+            
             res = client.chat.completions.create(model="openrouter/free", messages=conv)
             st.session_state.messages.append({"role": "assistant", "content": res.choices[0].message.content})
             st.rerun()
