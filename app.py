@@ -1,10 +1,3 @@
-Here is your fully updated **`app.py`** file.
-
-I have cleanly integrated the **bright risk/confidence metric header boxes**, the **FIXI-Vision error highlighting feature** for uploaded images, and the **LaTeX math formatting instructions**—all without any syntax errors.
-
-### Updated `app.py`
-
-```python
 import streamlit as st
 import requests
 import base64
@@ -546,5 +539,3 @@ if question:
 
         except Exception as e:
             st.error(f"FIXI chat failed: {e}")
-
-```
