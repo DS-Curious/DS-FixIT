@@ -140,11 +140,14 @@ if "messages" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
+if "active_images" not in st.session_state:
+    st.session_state.active_images = []
+
 # ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.4")
+    st.caption("Universal AI Problem Detector • v5.5")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -193,6 +196,7 @@ with st.sidebar:
                 st.session_state.latest_result = item["result"]
                 st.session_state.active_description = item.get("description", "")
                 st.session_state.active_report = item["result"]
+                st.session_state.active_images = item.get("images", [])
                 st.rerun()
 
     st.divider()
@@ -207,7 +211,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal AI vision inspection with fully linked context memory & history vault.")
+st.write("Instant multi-modal AI vision inspection with persistent evidence vault.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -228,7 +232,7 @@ uploaded_files = st.file_uploader(
 )
 
 file_notes = {}
-prepared_images = []
+current_prepared_images = []
 
 if uploaded_files:
     st.markdown("### 🗂️ Attached Evidence")
@@ -238,18 +242,24 @@ if uploaded_files:
             if file.type.startswith("image/"):
                 img = Image.open(file).convert("RGB")
                 st.image(img, caption=f"Evidence: {file.name}", width=240)
-                prepared_images.append(img)
+                current_prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
         with c2:
             note = st.text_input(f"Note for {file.name}", placeholder="e.g. Oblique fracture at distal tibia...", key=f"note_{file.name}")
             if note:
                 file_notes[file.name] = note
+elif "active_images" in st.session_state and st.session_state.active_images:
+    # Display saved images if loaded from history vault
+    st.markdown("### 🗂️ Historical Session Evidence")
+    for idx, img in enumerate(st.session_state.active_images):
+        st.image(img, caption=f"Loaded Evidence #{idx+1}", width=240)
+        current_prepared_images.append(img)
 
 # ---------------- ANALYSIS ENGINE ----------------
 
 if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
-    if not description.strip() and not uploaded_files:
+    if not description.strip() and not uploaded_files and not st.session_state.get("active_images"):
         st.warning("Please describe the problem or upload evidence.")
     else:
         st.session_state.fixi_mood = "💻 Processing & Analyzing..."
@@ -282,7 +292,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
 
             content = [{"type": "text", "text": prompt}]
             
-            for img in prepared_images:
+            for img in current_prepared_images:
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG")
                 encoded = base64.b64encode(buf.getvalue()).decode("utf-8")
@@ -291,17 +301,18 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                     "image_url": {"url": f"data:image/jpeg;base64,{encoded}"}
                 })
 
-            for file in uploaded_files:
-                if not file.type.startswith("image/"):
-                    if file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
-                        try:
-                            file_text = file.getvalue().decode("utf-8")
-                            content.append({
-                                "type": "text",
-                                "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
-                            })
-                        except Exception:
-                            pass
+            if uploaded_files:
+                for file in uploaded_files:
+                    if not file.type.startswith("image/"):
+                        if file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
+                            try:
+                                file_text = file.getvalue().decode("utf-8")
+                                content.append({
+                                    "type": "text",
+                                    "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
+                                })
+                            except Exception:
+                                pass
 
             with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
                 st.write("🔍 Performing full multi-modal vision scan...")
@@ -312,11 +323,13 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             st.session_state.latest_result = result
             st.session_state.active_description = description
             st.session_state.active_report = result
+            st.session_state.active_images = current_prepared_images
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
             st.session_state.history.append({
-                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Session"),
+                "title": description[:40] or ("Session Evidence" if current_prepared_images else "Session"),
                 "description": description,
-                "result": result
+                "result": result,
+                "images": current_prepared_images
             })
             st.rerun()
         except Exception as e:
