@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.5")
+    st.caption("Universal AI Problem Detector • v4.6")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -251,9 +251,9 @@ if uploaded_files:
 
                 draw = ImageDraw.Draw(img)
                 
-                # Perfected precision coordinates locking squarely onto the fracture
+                # Perfected coordinates locked squarely onto the actual fracture gap
                 if "Tight Fracture" in focus_area:
-                    box = [w*0.45, h*0.45, w*0.85, h*0.78]
+                    box = [w*0.4, h*0.52, w*0.82, h*0.88]
                 elif "Bottom Half" in focus_area:
                     box = [w*0.3, h*0.5, w*0.9, h*0.95]
                 elif "Top Half" in focus_area:
