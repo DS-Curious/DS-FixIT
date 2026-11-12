@@ -12,25 +12,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING (#009fff → #ec2f4b GRADIENT THEME) ----------------
+# ---------------- CONFIG & STYLING (THEME-AWARE DYNAMIC GRADIENT) ----------------
 
 st.markdown("""
 <style>
-/* Base Light Theme Gradient: #009fff to #ec2f4b */
+/* Dynamic Theme-Aware Styling */
 .stApp {
-    background: linear-gradient(
-        135deg,
-        #f0f8ff 0%,
-        #eef2f3 50%,
-        #fff0f3 100%
-    );
-    color: #111827;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 [data-testid="stSidebar"] {
-    background: linear-gradient(
-        180deg, #e0f2fe, #fce7f3, #fff1f2
-    );
+    background-color: var(--secondary-background-color);
     border-right: 2px solid rgba(0, 159, 255, 0.2);
 }
 
@@ -46,7 +39,8 @@ st.markdown("""
 }
 
 .subtitle {
-    color: #4b5563;
+    color: var(--text-color);
+    opacity: 0.8;
     font-size: 18px;
     font-weight: 600;
 }
@@ -69,9 +63,10 @@ div.stButton > button:hover {
 .result-card {
     padding: 24px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.9);
+    background-color: var(--secondary-background-color);
     border: 1px solid rgba(0, 159, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    color: var(--text-color);
 }
 
 .tech-badge {
@@ -81,6 +76,15 @@ div.stButton > button:hover {
     border-radius: 6px;
     font-size: 11px;
     font-weight: bold;
+}
+
+.fixi-box {
+    background-color: var(--secondary-background-color);
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #009fff;
+    color: var(--text-color);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -108,10 +112,10 @@ with st.sidebar:
     st.markdown("### 🤖 FIXI Companion")
     
     st.markdown(f"""
-    <div style="background: rgba(0, 159, 255, 0.08); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid #009fff;">
+    <div class="fixi-box">
         <span style="font-size: 38px;">🔮</span><br>
         <b style="color: #009fff; font-size: 18px;">FIXI</b><br>
-        <span style="font-size: 12px; color: #555;"><i>Status: {st.session_state.fixi_mood}</i></span><br><br>
+        <span style="font-size: 12px; opacity: 0.8;"><i>Status: {st.session_state.fixi_mood}</i></span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
         <span class="tech-badge">Multi-Perspective</span>
