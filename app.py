@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING ----------------
+# ---------------- CONFIG & STYLING (IRON MAN THEME & CLEAN METRICS) ----------------
 
 st.markdown("""
 <style>
@@ -62,7 +62,7 @@ div.stButton > button:hover {
 .metric-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .box-risk-high {
@@ -350,6 +350,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         risk_class = "box-risk-low"
         risk_symbol = "🟢 LOW RISK"
 
+    # Render metric boxes cleanly without trailing whitespace containers
     st.markdown(f"""
     <div class="metric-row">
         <div class="{risk_class}">{risk_symbol}</div>
