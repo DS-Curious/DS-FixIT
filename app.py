@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.7")
+    st.caption("Universal AI Problem Detector • v4.9")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -204,7 +204,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal diagnosis with precision HUD reticle targeting.")
+st.write("Instant multi-modal AI vision analysis across diverse images.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -228,53 +228,35 @@ file_notes = {}
 prepared_images = []
 
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence & Precision FIXI-Vision HUD")
+    st.markdown("### 🗂️ Attached Evidence & FIXI-Vision HUD Scan")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
                 img = Image.open(file).convert("RGB")
                 w, h = img.size
-                
-                focus_area = st.selectbox(
-                    f"🎯 Target Focus Zone for {file.name}",
-                    [
-                        "🎯 Tight Fracture / Defect Zone (Precision Lock)",
-                        "Bottom Half",
-                        "Center Focal Point",
-                        "Top Half",
-                        "Left Side",
-                        "Right Side"
-                    ],
-                    key=f"focus_{file.name}"
-                )
 
+                # Draw subtle tactical Iron Man HUD corner brackets across the pristine image
                 draw = ImageDraw.Draw(img)
+                bracket_len = min(w, h) * 0.1
+                color = "#009fff"
                 
-                # Perfectly centered on the bone fracture gap
-                if "Tight Fracture" in focus_area:
-                    box = [w * 0.52, h * 0.52, w * 0.88, h * 0.88]
-                elif "Bottom Half" in focus_area:
-                    box = [w * 0.3, h * 0.5, w * 0.9, h * 0.95]
-                elif "Top Half" in focus_area:
-                    box = [w * 0.2, h * 0.05, w * 0.8, h * 0.5]
-                elif "Left Side" in focus_area:
-                    box = [w * 0.05, h * 0.2, w * 0.5, h * 0.8]
-                elif "Right Side" in focus_area:
-                    box = [w * 0.5, h * 0.2, w * 0.95, h * 0.8]
-                else:
-                    box = [w * 0.3, h * 0.3, w * 0.7, h * 0.7]
+                # Top-Left
+                draw.line([(0, 0), (bracket_len, 0)], fill=color, width=4)
+                draw.line([(0, 0), (0, bracket_len)], fill=color, width=4)
+                # Top-Right
+                draw.line([(w, 0), (w - bracket_len, 0)], fill=color, width=4)
+                draw.line([(w, 0), (w, bracket_len)], fill=color, width=4)
+                # Bottom-Left
+                draw.line([(0, h), (bracket_len, h)], fill=color, width=4)
+                draw.line([(0, h), (0, h - bracket_len)], fill=color, width=4)
+                # Bottom-Right
+                draw.line([(w, h), (w - bracket_len, h)], fill=color, width=4)
+                draw.line([(w, h), (w, h - bracket_len)], fill=color, width=4)
 
-                # Draw high-tech Iron Man HUD targeting reticle & crosshairs
-                draw.rectangle(box, outline="#ef4444", width=max(4, int(w * 0.01)))
-                
-                cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-                draw.line([(cx - 20, cy), (cx + 20, cy)], fill="#ef4444", width=4)
-                draw.line([(cx, cy - 20), (cx, cy + 20)], fill="#ef4444", width=4)
-                
-                draw.text((box[0] + 8, box[1] + 8), "FIXI-LOCKED", fill="#ef4444")
-                
-                st.image(img, caption=f"Targeted: {file.name} ({focus_area})", width=240)
+                draw.text((10, 10), "FIXI-VISION ACTIVE SCAN", fill=color)
+
+                st.image(img, caption=f"Scanned: {file.name}", width=240)
                 prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
@@ -307,7 +289,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
                 "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
                 "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
-                "- Analyze the exact area inside the red HUD box and crosshairs (marked as FIXI-LOCKED) for fractures, defects, or errors.\n\n"
+                "- Perform full multi-modal visual inspection of the uploaded image(s) to independently detect and locate fractures, anomalies, structural defects, or errors.\n\n"
                 f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
                 f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
                 "Provide sections:\n"
@@ -341,7 +323,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             pass
 
             with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
-                st.write("🔍 Evaluating precision HUD target reticles...")
+                st.write("🔍 Performing deep neural vision scan across image...")
                 response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
                 result = response.choices[0].message.content
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
@@ -416,7 +398,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         </body>
         </html>
         """
-        st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html", key="dl_html_rep")
+        st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html", key="html_rep_btn")
 
 # ---------------- INTERACTIVE CHAT ----------------
 
