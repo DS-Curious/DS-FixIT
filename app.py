@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v4.1")
+    st.caption("Universal AI Problem Detector • v4.2")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -236,18 +236,26 @@ if uploaded_files:
                 img = Image.open(file).convert("RGB")
                 w, h = img.size
                 
-                # Default to Bottom Half / Fracture Zone if uploading bone X-rays
                 focus_area = st.selectbox(
                     f"🎯 Target Focus Zone for {file.name}",
-                    ["Bottom Half (Fracture / Error Zone)", "Center Focal Point", "Top Half", "Left Side", "Right Side"],
+                    [
+                        "🎯 Tight Fracture / Defect Zone (Precision Lock)",
+                        "Bottom Half",
+                        "Center Focal Point",
+                        "Top Half",
+                        "Left Side",
+                        "Right Side"
+                    ],
                     key=f"focus_{file.name}"
                 )
 
                 draw = ImageDraw.Draw(img)
                 
-                # Precise targeting box coordinates
-                if "Bottom Half" in focus_area:
-                    box = [w*0.2, h*0.45, w*0.85, h*0.9] # Snaps directly to lower leg fracture area
+                # Precision targeting coordinates
+                if "Tight Fracture" in focus_area:
+                    box = [w*0.32, h*0.55, w*0.72, h*0.85]  # Tightly frames the bone fracture
+                elif "Bottom Half" in focus_area:
+                    box = [w*0.25, h*0.4, w*0.85, h*0.9]
                 elif "Top Half" in focus_area:
                     box = [w*0.2, h*0.05, w*0.8, h*0.5]
                 elif "Left Side" in focus_area:
@@ -257,14 +265,14 @@ if uploaded_files:
                 else:
                     box = [w*0.3, h*0.3, w*0.7, h*0.7]
 
-                # Draw high-tech Iron Man HUD targeting box & crosshairs
+                # Draw high-tech Iron Man HUD targeting reticle & crosshairs
                 draw.rectangle(box, outline="#ef4444", width=max(4, int(w*0.01)))
                 
                 cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
                 draw.line([(cx - 20, cy), (cx + 20, cy)], fill="#ef4444", width=4)
                 draw.line([(cx, cy - 20), (cx, cy + 20)], fill="#ef4444", width=4)
                 
-                draw.text((box[0] + 8, box[1] + 8), "FIXI-TARGET LOCK", fill="#ef4444")
+                draw.text((box[0] + 8, box[1] + 8), "FIXI-LOCKED", fill="#ef4444")
                 
                 st.image(img, caption=f"Targeted: {file.name} ({focus_area})", width=240)
                 prepared_images.append(img)
@@ -299,7 +307,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
                 "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
                 "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
-                "- Analyze the exact area inside the red HUD box and crosshairs (marked as FIXI-TARGET LOCK) for fractures, defects, or errors.\n\n"
+                "- Analyze the exact area inside the red HUD box and crosshairs (marked as FIXI-LOCKED) for fractures, defects, or errors.\n\n"
                 f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
                 f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
                 "Provide sections:\n"
