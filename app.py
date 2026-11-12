@@ -3,6 +3,8 @@ import requests
 import base64
 import mimetypes
 import time
+import io
+import re
 from PIL import Image, ImageDraw, ImageOps
 from openai import OpenAI
 
@@ -13,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING ----------------
+# ---------------- CONFIG & STYLING (IRON MAN THEME & HIGHLIGHTS) ----------------
 
 st.markdown("""
 <style>
@@ -58,6 +60,7 @@ div.stButton > button:hover {
     box-shadow: 0 6px 16px rgba(236, 47, 75, 0.35);
 }
 
+/* Bright Structured Metric Boxes */
 .metric-row {
     display: flex;
     gap: 15px;
@@ -134,6 +137,15 @@ div.stButton > button:hover {
     border: 1px solid #009fff;
     color: var(--text-color);
 }
+
+/* Neon Text Highlight for Key Terms */
+.highlight-term {
+    background-color: rgba(0, 159, 255, 0.2);
+    border-bottom: 2px solid #009fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -148,14 +160,17 @@ if "messages" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
-# ---------------- SIDEBAR ----------------
+# ---------------- SIDEBAR (TECHY & FULL SOLVERS) ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v3.6")
+    st.caption("Universal AI Problem Detector • v3.7")
+
     st.divider()
 
+    # FIXI Dynamic Avatar & Expression
     st.markdown("### 🤖 FIXI Companion")
+    
     st.markdown(f"""
     <div class="fixi-box">
         <span style="font-size: 38px;">🔮</span><br>
@@ -168,6 +183,8 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.write("")
+
+    # Specialized Solvers (All 9 fully restored)
     st.markdown("### 🛠️ Specialized Solvers")
     solver_mode = st.selectbox(
         "Select Domain Mode",
@@ -185,40 +202,81 @@ with st.sidebar:
     )
 
     st.divider()
+
+    # Conversation Search & Memory Vault
     st.markdown("### 🧠 FIXI Memory Vault")
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
 
-    if st.session_state.history:
+    if not st.session_state.history:
+        st.caption("No history logged yet.")
+    else:
         filtered_history = [
             item for item in st.session_state.history 
             if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
         ] if search_query else st.session_state.history
 
         for i, item in enumerate(reversed(filtered_history[-10:])):
-            if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
+            if st.button(
+                f"📌 {item['title'][:25]}...",
+                key=f"history_{i}",
+                use_container_width=True
+            ):
                 st.session_state.latest_result = item["result"]
+
+    st.divider()
+
+    with st.expander("ℹ️ About DS-FixIT & Creator"):
+        st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
+        st.write("**Creator:** J.P. Dheepak Saianand")
+        st.write("**Companion:** FIXI")
+        st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
 # ---------------- HEADER ----------------
 
-st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal diagnosis with bright metrics and visual error highlighting.")
+st.markdown(
+    '<div class="main-title">DS-FixIT 🚀</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>',
+    unsafe_allow_html=True
+)
+
+st.write(
+    "Detect code errors, mathematical proofs, study queries, acoustic anomalies, hardware faults, plant diseases, or text issues instantly. "
+    "FIXI is ready to assist you with rigorous multi-perspective analysis."
+)
+
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
 
 st.markdown("## 🚀 What's the problem today?")
+
 col_desc, col_extra = st.columns(2)
 
 with col_desc:
-    description = st.text_area("Describe your problem", placeholder="Explain issue or paste code/equations...", height=140)
+    description = st.text_area(
+        "Describe your problem",
+        placeholder="Explain what's happening or paste code/equations/errors...",
+        height=140
+    )
 
 with col_extra:
-    additional_info = st.text_area("Additional Information (Optional Context)", placeholder="Environment, OS, error logs...", height=140)
+    additional_info = st.text_area(
+        "Additional Information (Optional Context)",
+        placeholder="Provide environmental factors, OS, previous attempts, error logs...",
+        height=140
+    )
 
 uploaded_files = st.file_uploader(
     "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
-    type=["png", "jpg", "jpeg", "webp", "pdf", "txt", "csv", "py", "json", "mp3", "wav", "m4a"],
+    type=[
+        "png", "jpg", "jpeg", "webp",
+        "pdf", "txt", "csv", "py", "json",
+        "mp3", "wav", "m4a"
+    ],
     accept_multiple_files=True
 )
 
@@ -231,10 +289,10 @@ if uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
+                # FIXI-Vision: Highlight image with targeting reticle overlay
                 img = Image.open(file).convert("RGB")
                 draw = ImageDraw.Draw(img)
                 w, h = img.size
-                # Draw Iron Man style targeting reticle box on image
                 draw.rectangle([w*0.1, h*0.1, w*0.9, h*0.9], outline="#ef4444", width=max(3, int(w*0.01)))
                 draw.text((w*0.12, h*0.12), "FIXI-TARGET", fill="#ef4444")
                 st.image(img, caption=f"Highlighted: {file.name}", width=220)
@@ -242,81 +300,134 @@ if uploaded_files:
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
         with c2:
-            note = st.text_input(f"Note for {file.name}", placeholder="e.g. Error at line 45...", key=f"note_{file.name}")
+            note = st.text_input(
+                f"Optional extra note for {file.name}",
+                placeholder="e.g. Error starts at line 45...",
+                key=f"note_{file.name}"
+            )
             if note:
                 file_notes[file.name] = note
 
 # ---------------- ANALYSIS ENGINE ----------------
 
-if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
+if st.button(
+    "🚀 ANALYSE WITH FIXI",
+    type="primary",
+    use_container_width=True
+):
+
     if not description.strip() and not uploaded_files:
-        st.warning("Please describe the problem or upload evidence.")
+        st.warning("Please describe the problem or upload evidence (image, audio, or file).")
+
     else:
         st.session_state.fixi_mood = "💻 Processing & Analyzing..."
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
-            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key
+            )
 
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = (
-                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT.\n"
+                "You are FIXI, the polite, honest, and rigorous AI companion of DS-FixIT (Universal AI Problem Detector).\n"
                 f"Selected Solver Mode: {solver_mode}\n\n"
-                "CRITICAL OUTPUT FORMAT:\n"
-                "You must start your response with these exact lines:\n"
+                "CRITICAL TAG REQUIREMENTS:\n"
+                "You MUST include these two tags at the very beginning of your response:\n"
                 "RISK_LEVEL: [High / Medium / Low]\n"
-                "CONFIDENCE_SCORE: [e.g. 92%]\n\n"
-                "CRITICAL RULES:\n"
+                "CONFIDENCE_SCORE: [e.g. 95%]\n\n"
+                "Core Guidelines:\n"
+                "- Be extremely direct and concise. Avoid long walls of text.\n"
                 "- Highlight key takeaways, critical root causes, and primary solutions using bold markdown (**...**).\n"
-                "- Use LaTeX ($...$ or $$...$$) for all math equations and differentiation.\n\n"
-                f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
-                f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
-                "Provide sections:\n"
+                "- **CRITICAL MATH RULE:** For all mathematical equations, differentiation, bases, powers, and variables, always use proper LaTeX formatting enclosed in single dollar signs ($...$) for inline math or double dollar signs ($$...$$) for block equations.\n\n"
+                f"USER PROBLEM DESCRIPTION:\n{description}\n\n"
+                f"ADDITIONAL INFORMATION:\n{additional_info}\n\n"
+                f"ATTACHED FILE NOTES:\n{notes_str if notes_str else 'None provided.'}\n\n"
+                "Provide structured sections:\n"
                 "## 1. Executive Summary\n"
-                "## 2. Root Cause & Highlighted Issue\n"
-                "## 3. Actionable Solution / Patch\n"
+                "## 2. Root Cause Analysis\n"
+                "## 3. Actionable Solution / Steps\n"
                 "## 4. Safety & Verification\n"
             )
 
-            content = [{"type": "text", "text": prompt}]
-            
-            # Send the highlighted/reticle images to the AI model
-            import io
+            content = [
+                {
+                    "type": "text",
+                    "text": prompt
+                }
+            ]
+
+            # Append highlighted images to API payload
             for img in prepared_images:
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG")
                 encoded = base64.b64encode(buf.getvalue()).decode("utf-8")
                 content.append({
                     "type": "image_url",
-                    "image_url": {"url": f"data:image/jpeg;base64,{encoded}"}
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded}"
+                    }
                 })
 
-            with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
-                st.write("🔍 Evaluating visual reticles and diagnostics...")
-                response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
+            for file in uploaded_files:
+                if not file.type.startswith("image/"):
+                    if file.type.startswith("text/") or file.name.endswith((".py", ".json", ".csv", ".txt")):
+                        try:
+                            file_text = file.getvalue().decode("utf-8")
+                            content.append({
+                                "type": "text",
+                                "text": f"\n--- FILE CONTENT [{file.name}] ---\n{file_text}\n-----------------------------------"
+                            })
+                        except Exception:
+                            pass
+
+            # Thinking Interface Expander
+            with st.status("🧠 FIXI Thinking Interface - Processing Problem...", expanded=True) as status:
+                st.write("🔍 Parsing input description and attached files...")
+                time.sleep(0.4)
+                st.write("🗺️ Constructing Root Cause Map & Bright Metric Breakdown...")
+                
+                response = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": content
+                        }
+                    ]
+                )
+
                 result = response.choices[0].message.content
+                st.write("✅ Comprehensive diagnosis generated successfully!")
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
 
             st.session_state.latest_result = result
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
+
             st.session_state.history.append({
-                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Session"),
+                "title": description[:40] or (uploaded_files[0].name if uploaded_files else "Diagnostic Session"),
                 "result": result
             })
+
             st.rerun()
+
         except Exception as e:
             st.session_state.fixi_mood = "⚠️ Error Encountered"
             st.error(f"Analysis failed: {e}")
 
-# ---------------- RESULTS DISPLAY WITH CLEAN METRICS ----------------
+# ---------------- RESULTS DISPLAY WITH BRIGHT BOXES & AUTO-HIGHLIGHTING ----------------
 
 if "latest_result" in st.session_state and st.session_state.latest_result:
+
     st.divider()
+
     st.markdown("## 🔍 FIXI's Diagnostic Report")
 
     res_text = str(st.session_state.latest_result)
     
-    # Extract Risk and Confidence dynamically
+    # Extract Risk and Confidence dynamically and remove them from display text
     risk_display = "MEDIUM"
     conf_display = "90%"
     clean_report_lines = []
@@ -329,7 +440,6 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         else:
             clean_report_lines.append(line)
 
-    # Reassemble report without the raw tag text
     clean_report = "\n".join(clean_report_lines).strip()
 
     # Determine risk box style
@@ -350,36 +460,118 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
-    st.markdown(clean_report)
+    st.markdown(
+        '<div class="result-card">',
+        unsafe_allow_html=True
+    )
+
+    # Automated Text Highlighter: Automatically wraps critical technical/error terms in neon highlight badges
+    highlight_keywords = [
+        "corrosion", "rust", "error", "failure", "syntax", "bug", "critical", 
+        "warning", "solution", "patch", "differential", "derivative", "equation", "proof"
+    ]
+    
+    highlighted_html = clean_report
+    for kw in highlight_keywords:
+        # Case-insensitive replacement for keywords that aren't already part of markdown tags
+        pattern = re.compile(r'(?i)\b(' + kw + r')\b(?![^<]*>)')
+        highlighted_html = pattern.sub(r'<span class="highlight-term">\1</span>', highlighted_html)
+
+    # Render using markdown with line breaks converted for HTML container support
+    st.markdown(highlighted_html.replace('\n', '<br>'), unsafe_allow_html=True)
+
     st.markdown("</div>", unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
-    with c1:
-        st.download_button("📥 Download Report (.md)", data=clean_report, file_name="Report.md", mime="text/markdown")
-    with c2:
-        st.download_button("📄 Download HTML Report", data=f"<html><body>{clean_report.replace(chr(10), '<br>')}</body></html>", file_name="Report.html", mime="text/html")
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        st.download_button(
+            label="📥 Download Report (Markdown)",
+            data=clean_report,
+            file_name="DS-FixIT-Diagnostic-Report.md",
+            mime="text/markdown",
+            key="download_markdown_btn"
+        )
+    with col_dl2:
+        pdf_html_content = f"""
+        <html>
+        <head><title>DS-FixIT Diagnostic Report</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
+            <h1 style="color: #009fff;">DS-FixIT 🚀 Diagnostic Report</h1>
+            <p><b>Mode:</b> {solver_mode}</p>
+            <hr/>
+            <div>{clean_report.replace(chr(10), '<br>')}</div>
+            <hr/>
+            <p style="font-size: 11px; color: #777;">Generated by FIXI • DS-FixIT © 2026</p>
+        </body>
+        </html>
+        """
+        st.download_button(
+            label="📄 Download Official PDF Report",
+            data=pdf_html_content,
+            file_name="DS-FixIT-Diagnostic-Report.html",
+            mime="text/html",
+            key="download_html_btn"
+        )
 
-# ---------------- INTERACTIVE CHAT ----------------
+# ---------------- FIXI INTERACTIVE CHAT ----------------
 
 st.divider()
+
 st.markdown("## 💬 Talk with FIXI")
+st.caption("Have follow-up questions about the diagnosis, code patches, or root causes? Ask FIXI anytime!")
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 question = st.chat_input("Ask FIXI a follow-up question...")
+
 if question:
     if "latest_result" not in st.session_state:
-        st.warning("Run an analysis first!")
+        st.warning("Please run an analysis first so FIXI has context!")
     else:
-        st.session_state.messages.append({"role": "user", "content": question})
+        st.session_state.messages.append({
+            "role": "user",
+            "content": question
+        })
+
         try:
-            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_APIKEY"])
-            conv = [{"role": "system", "content": "You are FIXI. Use bolding for important terms and LaTeX ($...$) for math equations. Be direct."}]
-            conv.extend(st.session_state.messages[-10:])
-            res = client.chat.completions.create(model="openrouter/free", messages=conv)
-            st.session_state.messages.append({"role": "assistant", "content": res.choices[0].message.content})
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=st.secrets["OPENROUTER_APIKEY"]
+            )
+
+            conversation = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are FIXI, the polite, honest, and helpful AI companion of DS-FixIT. "
+                        "Answer follow-up questions using the diagnostic context below. "
+                        "Always use proper LaTeX notation ($...$ or $$...$$) for mathematical equations, powers, and differentiation."
+                    )
+                },
+                {
+                    "role": "assistant",
+                    "content": f"Previous diagnostic context:\n{st.session_state.latest_result}"
+                }
+            ]
+
+            conversation.extend(st.session_state.messages[-10:])
+
+            with st.spinner("🚀 FIXI is typing a response..."):
+                response = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=conversation
+                )
+
+            answer = response.choices[0].message.content
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": answer
+            })
+
             st.rerun()
+
         except Exception as e:
-            st.error(f"Chat failed: {e}")
+            st.error(f"FIXI chat failed: {e}")
