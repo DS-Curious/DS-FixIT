@@ -4,7 +4,7 @@ import base64
 import mimetypes
 import time
 import io
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageOps
 from openai import OpenAI
 
 st.set_page_config(
@@ -144,7 +144,7 @@ if "fixi_mood" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.1")
+    st.caption("Universal AI Problem Detector • v5.2")
     st.divider()
 
     st.markdown("### 🤖 FIXI Companion")
@@ -204,7 +204,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal diagnosis with precise anatomical HUD targeting.")
+st.write("Instant multi-modal AI vision inspection with clean, unmarred evidence analysis.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -228,60 +228,13 @@ file_notes = {}
 prepared_images = []
 
 if uploaded_files:
-    st.markdown("### 🗂️ Attached Evidence & Precision FIXI-Vision HUD")
+    st.markdown("### 🗂️ Attached Evidence")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
                 img = Image.open(file).convert("RGB")
-                w, h = img.size
-                
-                # Refined anatomical zone selection
-                focus_zone = st.selectbox(
-                    f"🎯 Select Target Zone for {file.name}",
-                    [
-                        "Upper Shaft / Mid-Bone Fracture Zone",
-                        "Lower Joint / Ankle / Distal Break",
-                        "Center Core Anomaly",
-                        "Full Image Scan (No Overlay Box)"
-                    ],
-                    key=f"zone_{file.name}"
-                )
-
-                draw = ImageDraw.Draw(img)
-                
-                if "Full Image Scan" not in focus_zone:
-                    # Precise coordinate mapping based on selected anatomical zone
-                    if "Upper Shaft" in focus_zone:
-                        box = [w * 0.22, h * 0.12, w * 0.72, h * 0.58]
-                    elif "Lower Joint" in focus_zone:
-                        box = [w * 0.25, h * 0.50, w * 0.75, h * 0.92]
-                    else:  # Center
-                        box = [w * 0.30, h * 0.30, w * 0.70, h * 0.70]
-
-                    # Draw Iron Man HUD precision targeting box and crosshairs
-                    draw.rectangle(box, outline="#ef4444", width=max(4, int(w * 0.01)))
-                    
-                    cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-                    draw.line([(cx - 25, cy), (cx + 25, cy)], fill="#ef4444", width=4)
-                    draw.line([(cx, cy - 25), (cx, cy + 25)], fill="#ef4444", width=4)
-                    
-                    draw.text((box[0] + 8, box[1] + 8), "FIXI-LOCKED", fill="#ef4444")
-                else:
-                    # Pristine tactical corners for full scan mode
-                    bracket_len = min(w, h) * 0.1
-                    color = "#009fff"
-                    draw.line([(0, 0), (bracket_len, 0)], fill=color, width=4)
-                    draw.line([(0, 0), (0, bracket_len)], fill=color, width=4)
-                    draw.line([(w, 0), (w - bracket_len, 0)], fill=color, width=4)
-                    draw.line([(w, 0), (w, bracket_len)], fill=color, width=4)
-                    draw.line([(0, h), (bracket_len, h)], fill=color, width=4)
-                    draw.line([(0, h), (0, h - bracket_len)], fill=color, width=4)
-                    draw.line([(w, h), (w - bracket_len, h)], fill=color, width=4)
-                    draw.line([(w, h), (w, h - bracket_len)], fill=color, width=4)
-                    draw.text((10, 10), "FIXI-FULL SCAN", fill=color)
-
-                st.image(img, caption=f"Target: {file.name} ({focus_zone})", width=240)
+                st.image(img, caption=f"Evidence: {file.name}", width=240)
                 prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
@@ -314,7 +267,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
                 "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
                 "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
-                "- Analyze the exact area inside the red HUD box and crosshairs (or full scan) for fractures, defects, or errors.\n\n"
+                "- Inspect the uploaded image(s) thoroughly to independently detect and locate fractures, anomalies, structural defects, or errors.\n\n"
                 f"USER PROBLEM:\n{description}\n\nADDITIONAL INFO:\n{additional_info}\n\n"
                 f"FILE NOTES:\n{notes_str if notes_str else 'None'}\n\n"
                 "Provide sections:\n"
@@ -348,7 +301,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             pass
 
             with st.status("🧠 FIXI Thinking Interface...", expanded=True) as status:
-                st.write("🔍 Evaluating precision HUD target reticles...")
+                st.write("🔍 Performing full multi-modal vision scan...")
                 response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
                 result = response.choices[0].message.content
                 status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
