@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---------------- CONFIG & STYLING (IRON MAN THEME & CLEAN METRICS) ----------------
+# ---------------- CONFIG & STYLING ----------------
 
 st.markdown("""
 <style>
@@ -109,15 +109,6 @@ div.stButton > button:hover {
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
-.result-card {
-    padding: 24px;
-    border-radius: 18px;
-    background-color: var(--secondary-background-color);
-    border: 1px solid rgba(0, 159, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-    color: var(--text-color);
-}
-
 .tech-badge {
     background: #009fff;
     color: white;
@@ -149,7 +140,7 @@ if "messages" not in st.session_state:
 if "fixi_mood" not in st.session_state:
     st.session_state.fixi_mood = "🚀 Online & Ready"
 
-# ---------------- SIDEBAR (ALL 9 SOLVERS & MEMORY VAULT) ----------------
+# ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
@@ -367,10 +358,8 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
     </div>
     """, unsafe_allow_html=True)
 
-    with st.container():
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown(clean_report)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Render report directly without the boxed container bar
+    st.markdown(clean_report)
 
     st.write("")
 
