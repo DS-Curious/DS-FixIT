@@ -285,11 +285,14 @@ if "active_description" not in st.session_state:
 if "active_session_id" not in st.session_state:
     st.session_state.active_session_id = None
 
+if "uploader_counter" not in st.session_state:
+    st.session_state.uploader_counter = 0
+
 # ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v6.1 Turbo")
+    st.caption("Universal AI Problem Detector • v6.2 Turbo")
     st.divider()
 
     st.markdown("### 🔐 Account & Cloud Vault")
@@ -303,6 +306,7 @@ with st.sidebar:
             st.session_state.active_images = []
             st.session_state.active_description = ""
             st.session_state.active_session_id = None
+            st.session_state.uploader_counter += 1
             st.rerun()
     else:
         auth_tab1, auth_tab2 = st.tabs(["Login", "Sign Up"])
@@ -372,6 +376,7 @@ with st.sidebar:
         st.session_state.active_images = []
         st.session_state.messages = []
         st.session_state.active_session_id = None
+        st.session_state.uploader_counter += 1  # Forces file_uploader widget to reset buffer
         st.rerun()
 
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
@@ -392,6 +397,7 @@ with st.sidebar:
                 st.session_state.active_images = item.get("images", [])
                 st.session_state.messages = item.get("messages", [])
                 st.session_state.active_session_id = item.get("id")
+                st.session_state.uploader_counter += 1
                 st.rerun()
 
     st.divider()
@@ -420,10 +426,12 @@ with col_desc:
 with col_extra:
     additional_info = st.text_area("Additional Information (Optional Context)", placeholder="Environment, OS, error logs...", height=140)
 
+# Dynamic key forces uploader reset when New Clean Scan is clicked
 uploaded_files = st.file_uploader(
     "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
     type=["png", "jpg", "jpeg", "webp", "pdf", "txt", "csv", "py", "json", "mp3", "wav", "m4a"],
-    accept_multiple_files=True
+    accept_multiple_files=True,
+    key=f"uploader_{st.session_state.uploader_counter}"
 )
 
 file_notes = {}
@@ -460,7 +468,6 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
     else:
         st.session_state.fixi_mood = "⚡ Streaming Analysis..."
         
-        # Explicit visible status box so user sees FIXI working immediately
         status_container = st.empty()
         status_container.markdown("### 🧠 FIXI is analyzing your evidence and problem...")
 
@@ -531,9 +538,8 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                         yield delta
 
             result = st.write_stream(stream_generator())
-            status_container.empty() # Clear status notice once done
+            status_container.empty()
 
-            # Simple smart naming using user description or filename
             if description.strip():
                 session_title = description.strip()
             elif first_uploaded_filename:
