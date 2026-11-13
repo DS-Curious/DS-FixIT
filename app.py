@@ -133,7 +133,6 @@ init_db()
 # ---------------- IMAGE OPTIMIZER ----------------
 
 def optimize_image_for_vision(uploaded_file, max_dim=1024) -> Image.Image:
-    """Resizes large images down to max_dim while preserving aspect ratio for 3x-5x faster API inference."""
     img = Image.open(uploaded_file).convert("RGB")
     img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
     return img
@@ -290,10 +289,9 @@ if "active_session_id" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v6.0 Turbo")
+    st.caption("Universal AI Problem Detector • v6.1 Turbo")
     st.divider()
 
-    # -------- AUTH / ACCOUNT PORTAL --------
     st.markdown("### 🔐 Account & Cloud Vault")
     if st.session_state.current_user:
         st.success(f"Logged in as **{st.session_state.current_user}**")
@@ -430,14 +428,15 @@ uploaded_files = st.file_uploader(
 
 file_notes = {}
 current_prepared_images = []
+first_uploaded_filename = None
 
 if uploaded_files:
+    first_uploaded_filename = uploaded_files[0].name
     st.markdown("### 🗂️ Attached Evidence")
     for file in uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
-                # Auto-optimize image dimensions for rapid upload and fast AI vision processing
                 img = optimize_image_for_vision(file, max_dim=1024)
                 st.image(img, caption=f"Evidence: {file.name} (Optimized)", width=240)
                 current_prepared_images.append(img)
@@ -453,13 +452,18 @@ elif "active_images" in st.session_state and st.session_state.active_images:
         st.image(img, caption=f"Historical Evidence #{idx+1}", width=240)
         current_prepared_images.append(img)
 
-# ---------------- ANALYSIS ENGINE (STREAMING) ----------------
+# ---------------- ANALYSIS ENGINE (STREAMING WITH VISIBLE STATUS) ----------------
 
 if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
     if not description.strip() and not uploaded_files and not st.session_state.get("active_images"):
         st.warning("Please describe the problem or upload evidence.")
     else:
         st.session_state.fixi_mood = "⚡ Streaming Analysis..."
+        
+        # Explicit visible status box so user sees FIXI working immediately
+        status_container = st.empty()
+        status_container.markdown("### 🧠 FIXI is analyzing your evidence and problem...")
+
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
             client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
@@ -511,6 +515,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             except Exception:
                                 pass
 
+            status_container.markdown("### ⚡ FIXI is streaming live response...")
             st.divider()
             st.markdown("## ⚡ FIXI Live Diagnostic Stream")
             
@@ -526,8 +531,16 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                         yield delta
 
             result = st.write_stream(stream_generator())
+            status_container.empty() # Clear status notice once done
 
-            session_title = description[:40] or ("Session Evidence" if current_prepared_images else "Session")
+            # Simple smart naming using user description or filename
+            if description.strip():
+                session_title = description.strip()
+            elif first_uploaded_filename:
+                session_title = first_uploaded_filename
+            else:
+                session_title = "General Diagnostic Session"
+
             st.session_state.latest_result = result
             st.session_state.active_description = description
             st.session_state.active_report = result
@@ -557,6 +570,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             })
             st.rerun()
         except Exception as e:
+            status_container.empty()
             st.session_state.fixi_mood = "⚠️ Error Encountered"
             st.error(f"Analysis failed: {e}")
 
@@ -621,7 +635,7 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         """
         st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html", key="html_rep_btn")
 
-# ---------------- INTERACTIVE CHAT (STREAMING + DB SYNC) ----------------
+# ---------------- INTERACTIVE CHAT ----------------
 
 st.divider()
 st.markdown("## 💬 Talk with FIXI")
@@ -673,7 +687,6 @@ if question:
 
             st.session_state.messages.append({"role": "assistant", "content": reply})
             
-            # Sync chat messages back to session list & SQLite DB
             active_id = st.session_state.get("active_session_id")
             if active_id:
                 update_session_messages_in_db(active_id, st.session_state.messages)
