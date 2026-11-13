@@ -130,138 +130,6 @@ def load_user_history(username: str) -> list:
 
 init_db()
 
-# ---------------- IMAGE OPTIMIZER ----------------
-
-def optimize_image_for_vision(uploaded_file, max_dim=1024) -> Image.Image:
-    img = Image.open(uploaded_file).convert("RGB")
-    img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
-    return img
-
-# ---------------- CONFIG & STYLING ----------------
-
-st.markdown("""
-<style>
-.stApp {
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-
-[data-testid="stSidebar"] {
-    background-color: var(--secondary-background-color);
-    border-right: 2px solid rgba(0, 159, 255, 0.2);
-}
-
-.main-title {
-    font-size: 48px;
-    font-weight: 900;
-    background: linear-gradient(90deg, #009fff, #ec2f4b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
-}
-
-.subtitle {
-    color: var(--text-color);
-    opacity: 0.8;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-div.stButton > button {
-    border-radius: 12px;
-    background: linear-gradient(90deg, #009fff, #ec2f4b);
-    color: #ffffff;
-    font-weight: bold;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 159, 255, 0.25);
-    transition: all 0.3s ease;
-}
-
-div.stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(236, 47, 75, 0.35);
-}
-
-.metric-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.box-risk-high {
-    flex: 1;
-    background: linear-gradient(135deg, #7f1d1d, #ef4444);
-    color: white;
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-}
-
-.box-risk-med {
-    flex: 1;
-    background: linear-gradient(135deg, #78350f, #f59e0b);
-    color: white;
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-}
-
-.box-risk-low {
-    flex: 1;
-    background: linear-gradient(135deg, #065f46, #10b981);
-    color: white;
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-}
-
-.box-confidence {
-    flex: 1;
-    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-    color: white;
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-}
-
-.tech-badge {
-    background: #009fff;
-    color: white;
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.fixi-box {
-    background-color: var(--secondary-background-color);
-    padding: 16px;
-    border-radius: 14px;
-    text-align: center;
-    border: 2px solid #009fff;
-    box-shadow: 0 0 20px rgba(0, 159, 255, 0.3);
-    color: var(--text-color);
-}
-
-.cyber-anime-face {
-    font-size: 46px;
-    background: linear-gradient(135deg, #009fff, #ffffff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 12px rgba(0, 159, 255, 0.8));
-    margin-bottom: 5px;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # ---------------- SESSION STATE ----------------
 
 if "current_user" not in st.session_state:
@@ -288,11 +156,36 @@ if "active_session_id" not in st.session_state:
 if "uploader_counter" not in st.session_state:
     st.session_state.uploader_counter = 0
 
-# ---------------- SIDEBAR ----------------
+# ---------------- SIDEBAR (THEME SELECTOR) ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v6.2 Turbo")
+    st.caption("Universal AI Problem Detector • v6.3 HUD")
+    st.divider()
+
+    st.markdown("### 🎨 HUD Theme")
+    theme_choice = st.selectbox(
+        "Select Interface Aesthetic",
+        ["Blue Cyber", "Stark Red & Gold"],
+        label_visibility="collapsed"
+    )
+
+    # Set color palette based on theme selection
+    if theme_choice == "Stark Red & Gold":
+        primary_color = "#ff3b30"
+        secondary_accent = "#ffcc00"
+        title_gradient = "linear-gradient(90deg, #ff3b30, #ffcc00)"
+        box_border = "#ff3b30"
+        box_glow = "rgba(255, 59, 48, 0.35)"
+        badge_bg = "#ff3b30"
+    else:
+        primary_color = "#009fff"
+        secondary_accent = "#ec2f4b"
+        title_gradient = "linear-gradient(90deg, #009fff, #ec2f4b)"
+        box_border = "#009fff"
+        box_glow = "rgba(0, 159, 255, 0.3)"
+        badge_bg = "#009fff"
+
     st.divider()
 
     st.markdown("### 🔐 Account & Cloud Vault")
@@ -341,8 +234,8 @@ with st.sidebar:
     st.markdown(f"""
     <div class="fixi-box">
         <div class="cyber-anime-face">🧿🌐</div>
-        <b style="color: #009fff; font-size: 20px; letter-spacing: 0.5px;">FIXI</b><br>
-        <span style="font-size: 11px; opacity: 0.85; color: #009fff;"><i>[Cybernetic Blue Interface]</i></span><br>
+        <b style="color: {primary_color}; font-size: 20px; letter-spacing: 0.5px;">FIXI</b><br>
+        <span style="font-size: 11px; opacity: 0.85; color: {primary_color};"><i>[{theme_choice} Interface]</i></span><br>
         <span style="font-size: 12px; opacity: 0.8;">Status: {st.session_state.fixi_mood}</span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
@@ -376,7 +269,7 @@ with st.sidebar:
         st.session_state.active_images = []
         st.session_state.messages = []
         st.session_state.active_session_id = None
-        st.session_state.uploader_counter += 1  # Forces file_uploader widget to reset buffer
+        st.session_state.uploader_counter += 1
         st.rerun()
 
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
@@ -408,11 +301,136 @@ with st.sidebar:
         st.write("**Companion:** FIXI")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
+# ---------------- CONFIG & DYNAMIC STYLING ----------------
+
+st.markdown(f"""
+<style>
+.stApp {{
+    background-color: var(--background-color);
+    color: var(--text-color);
+}}
+
+[data-testid="stSidebar"] {{
+    background-color: var(--secondary-background-color);
+    border-right: 2px solid {box_border}33;
+}}
+
+.main-title {{
+    font-size: 48px;
+    font-weight: 900;
+    background: {title_gradient};
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+}}
+
+.subtitle {{
+    color: var(--text-color);
+    opacity: 0.8;
+    font-size: 18px;
+    font-weight: 600;
+}}
+
+div.stButton > button {{
+    border-radius: 12px;
+    background: {title_gradient};
+    color: #ffffff;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 4px 12px {box_glow};
+    transition: all 0.3s ease;
+}}
+
+div.stButton > button:hover {{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px {box_glow};
+}}
+
+.metric-row {{
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}}
+
+.box-risk-high {{
+    flex: 1;
+    background: linear-gradient(135deg, #7f1d1d, #ef4444);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}}
+
+.box-risk-med {{
+    flex: 1;
+    background: linear-gradient(135deg, #78350f, #f59e0b);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}}
+
+.box-risk-low {{
+    flex: 1;
+    background: linear-gradient(135deg, #065f46, #10b981);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}}
+
+.box-confidence {{
+    flex: 1;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}}
+
+.tech-badge {{
+    background: {primary_color};
+    color: white;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+.fixi-box {{
+    background-color: var(--secondary-background-color);
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    border: 2px solid {primary_color};
+    box-shadow: 0 0 20px {box_glow};
+    color: var(--text-color);
+}}
+
+.cyber-anime-face {{
+    font-size: 46px;
+    background: {title_gradient};
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px {box_glow});
+    margin-bottom: 5px;
+}}
+</style>
+""", unsafe_allow_html=True)
+
 # ---------------- HEADER ----------------
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Turbo-compressed multi-modal vision inspection with persistent user vaults & live streaming.")
+st.markdown(f'<div class="subtitle">Detect. Analyse. Fix. • Active Mode: {solver_mode} • Theme: {theme_choice}</div>', unsafe_allow_html=True)
+st.write("Turbo-compressed multi-modal vision inspection with dynamic HUD aesthetics & live streaming.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -426,13 +444,17 @@ with col_desc:
 with col_extra:
     additional_info = st.text_area("Additional Information (Optional Context)", placeholder="Environment, OS, error logs...", height=140)
 
-# Dynamic key forces uploader reset when New Clean Scan is clicked
 uploaded_files = st.file_uploader(
     "📎 Upload Evidence (Images, Audio, PDF, Text, or Code Files)",
     type=["png", "jpg", "jpeg", "webp", "pdf", "txt", "csv", "py", "json", "mp3", "wav", "m4a"],
     accept_multiple_files=True,
     key=f"uploader_{st.session_state.uploader_counter}"
 )
+
+def optimize_image_for_vision(uploaded_file, max_dim=1024) -> Image.Image:
+    img = Image.open(uploaded_file).convert("RGB")
+    img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+    return img
 
 file_notes = {}
 current_prepared_images = []
@@ -478,7 +500,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = (
-                "You are FIXI, a polite, honest, and rigorous blue cyber-anime AI companion of DS-FixIT.\n"
+                f"You are FIXI, a polite, honest, and rigorous {theme_choice} AI companion of DS-FixIT.\n"
                 f"Selected Solver Mode: {solver_mode}\n\n"
                 "CRITICAL TAG REQUIREMENTS:\n"
                 "You MUST start your response with these exact lines:\n"
@@ -630,8 +652,8 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         <html>
         <head><title>DS-FixIT Diagnostic Report</title></head>
         <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
-            <h1 style="color: #009fff;">DS-FixIT 🚀 Diagnostic Report</h1>
-            <p><b>Mode:</b> {solver_mode}</p>
+            <h1 style="color: {primary_color};">DS-FixIT 🚀 Diagnostic Report</h1>
+            <p><b>Mode:</b> {solver_mode} | <b>Theme:</b> {theme_choice}</p>
             <hr/>
             <div>{clean_report.replace(chr(10), '<br>')}</div>
             <hr/>
@@ -667,7 +689,7 @@ if question:
             active_rep = st.session_state.get("active_report", st.session_state.latest_result)
             
             system_context = (
-                "You are FIXI, a polite, honest, and rigorous blue cyber-anime AI companion of DS-FixIT.\n"
+                f"You are FIXI, a polite, honest, and rigorous {theme_choice} AI companion of DS-FixIT.\n"
                 f"Active Solver Mode: {solver_mode}\n"
                 f"Original User Problem/Context: {active_desc}\n"
                 f"Previous Diagnostic Report:\n{active_rep}\n\n"
