@@ -160,24 +160,26 @@ if "uploader_counter" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v6.3 HUD")
+    st.caption("Universal AI Problem Detector • v6.4 MARK-HUD")
     st.divider()
 
-    st.markdown("### 🎨 HUD Theme")
+    st.markdown("### 🎨 Interface Mode")
     theme_choice = st.selectbox(
         "Select Interface Aesthetic",
-        ["Blue Cyber", "Stark Red & Gold"],
+        ["Blue Cyber", "Stark Iron Man Mode"],
         label_visibility="collapsed"
     )
 
-    # Set color palette based on theme selection
-    if theme_choice == "Stark Red & Gold":
-        primary_color = "#ff3b30"
-        secondary_accent = "#ffcc00"
-        title_gradient = "linear-gradient(90deg, #ff3b30, #ffcc00)"
-        box_border = "#ff3b30"
-        box_glow = "rgba(255, 59, 48, 0.35)"
-        badge_bg = "#ff3b30"
+    # Theme Styling Profiles
+    if theme_choice == "Stark Iron Man Mode":
+        primary_color = "#ffb700"  # Stark Gold
+        secondary_accent = "#ff3b30" # Stark Crimson Red
+        title_gradient = "linear-gradient(90deg, #ff3b30, #ffb700, #ffea00)"
+        box_border = "#ffb700"
+        box_glow = "rgba(255, 183, 0, 0.4)"
+        badge_bg = "#d90429"
+        companion_title = "JARVIS / FRIDAY"
+        companion_avatar = "⚡🤖"
     else:
         primary_color = "#009fff"
         secondary_accent = "#ec2f4b"
@@ -185,6 +187,8 @@ with st.sidebar:
         box_border = "#009fff"
         box_glow = "rgba(0, 159, 255, 0.3)"
         badge_bg = "#009fff"
+        companion_title = "FIXI"
+        companion_avatar = "🧿🌐"
 
     st.divider()
 
@@ -230,12 +234,12 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown("### 🤖 FIXI Cyber Companion")
+    st.markdown(f"### 🤖 {companion_title} Companion")
     st.markdown(f"""
     <div class="fixi-box">
-        <div class="cyber-anime-face">🧿🌐</div>
-        <b style="color: {primary_color}; font-size: 20px; letter-spacing: 0.5px;">FIXI</b><br>
-        <span style="font-size: 11px; opacity: 0.85; color: {primary_color};"><i>[{theme_choice} Interface]</i></span><br>
+        <div class="cyber-anime-face">{companion_avatar}</div>
+        <b style="color: {primary_color}; font-size: 18px; letter-spacing: 1px;">{companion_title}</b><br>
+        <span style="font-size: 11px; opacity: 0.85; color: {primary_color}; font-family: monospace;"><i>[{theme_choice} HUD]</i></span><br>
         <span style="font-size: 12px; opacity: 0.8;">Status: {st.session_state.fixi_mood}</span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
@@ -298,21 +302,35 @@ with st.sidebar:
     with st.expander("ℹ️ About DS-FixIT & Creator"):
         st.write("**DS-FixIT** is a universal multi-modal AI problem detector powered by advanced vision and reasoning.")
         st.write("**Creator:** J.P. Dheepak Saianand")
-        st.write("**Companion:** FIXI")
+        st.write(f"**Companion:** {companion_title}")
         st.caption("DS-FixIT © 2026 • Built with Streamlit & OpenRouter")
 
-# ---------------- CONFIG & DYNAMIC STYLING ----------------
+# ---------------- CONFIG & DYNAMIC STYLING (IRON MAN MARK-HUD) ----------------
+
+scanlines_css = """
+background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.15) 50%
+), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+);
+background-size: 100% 3px, 3px 100%;
+""" if theme_choice == "Stark Iron Man Mode" else ""
 
 st.markdown(f"""
 <style>
 .stApp {{
     background-color: var(--background-color);
     color: var(--text-color);
+    {scanlines_css}
 }}
 
 [data-testid="stSidebar"] {{
     background-color: var(--secondary-background-color);
-    border-right: 2px solid {box_border}33;
+    border-right: 2px solid {box_border}55;
 }}
 
 .main-title {{
@@ -321,29 +339,35 @@ st.markdown(f"""
     background: {title_gradient};
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 20px {box_glow};
 }}
 
 .subtitle {{
     color: var(--text-color);
-    opacity: 0.8;
-    font-size: 18px;
+    opacity: 0.9;
+    font-size: 16px;
     font-weight: 600;
+    font-family: monospace;
+    letter-spacing: 0.5px;
 }}
 
 div.stButton > button {{
-    border-radius: 12px;
+    border-radius: {'4px' if theme_choice == 'Stark Iron Man Mode' else '12px'};
     background: {title_gradient};
-    color: #ffffff;
-    font-weight: bold;
-    border: none;
-    box-shadow: 0 4px 12px {box_glow};
-    transition: all 0.3s ease;
+    color: {'#000000' if theme_choice == 'Stark Iron Man Mode' else '#ffffff'};
+    font-weight: 900;
+    border: {'1px solid #ffb700' if theme_choice == 'Stark Iron Man Mode' else 'none'};
+    box-shadow: 0 0 15px {box_glow};
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }}
 
 div.stButton > button:hover {{
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px {box_glow};
+    box-shadow: 0 0 25px {box_glow};
 }}
 
 .metric-row {{
@@ -357,7 +381,7 @@ div.stButton > button:hover {{
     background: linear-gradient(135deg, #7f1d1d, #ef4444);
     color: white;
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 8px;
     text-align: center;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
@@ -368,7 +392,7 @@ div.stButton > button:hover {{
     background: linear-gradient(135deg, #78350f, #f59e0b);
     color: white;
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 8px;
     text-align: center;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
@@ -379,7 +403,7 @@ div.stButton > button:hover {{
     background: linear-gradient(135deg, #065f46, #10b981);
     color: white;
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 8px;
     text-align: center;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
@@ -390,37 +414,38 @@ div.stButton > button:hover {{
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
     color: white;
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 8px;
     text-align: center;
     font-weight: bold;
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }}
 
 .tech-badge {{
-    background: {primary_color};
-    color: white;
+    background: {badge_bg};
+    color: {'#000000' if theme_choice == 'Stark Iron Man Mode' else '#ffffff'};
     padding: 3px 9px;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: bold;
+    font-family: monospace;
 }}
 
 .fixi-box {{
     background-color: var(--secondary-background-color);
     padding: 16px;
-    border-radius: 14px;
+    border-radius: {'6px' if theme_choice == 'Stark Iron Man Mode' else '14px'};
     text-align: center;
     border: 2px solid {primary_color};
-    box-shadow: 0 0 20px {box_glow};
+    box-shadow: 0 0 25px {box_glow};
     color: var(--text-color);
 }}
 
 .cyber-anime-face {{
-    font-size: 46px;
+    font-size: 44px;
     background: {title_gradient};
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 12px {box_glow});
+    filter: drop-shadow(0 0 15px {box_glow});
     margin-bottom: 5px;
 }}
 </style>
@@ -428,9 +453,9 @@ div.stButton > button:hover {{
 
 # ---------------- HEADER ----------------
 
-st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
-st.markdown(f'<div class="subtitle">Detect. Analyse. Fix. • Active Mode: {solver_mode} • Theme: {theme_choice}</div>', unsafe_allow_html=True)
-st.write("Turbo-compressed multi-modal vision inspection with dynamic HUD aesthetics & live streaming.")
+st.markdown('<div class="main-title">DS-FixIT 🚀 MARK-HUD</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitle">SYSTEM ACTIVE // MODE: {solver_mode.upper()} // VISOR: {theme_choice.upper()}</div>', unsafe_allow_html=True)
+st.write("Advanced multi-modal telemetry inspection with visor HUD scanlines and active reasoning.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -484,14 +509,14 @@ elif "active_images" in st.session_state and st.session_state.active_images:
 
 # ---------------- ANALYSIS ENGINE (STREAMING WITH VISIBLE STATUS) ----------------
 
-if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
+if st.button("🚀 ANALYSE WITH TELEMETRY", type="primary", use_container_width=True):
     if not description.strip() and not uploaded_files and not st.session_state.get("active_images"):
         st.warning("Please describe the problem or upload evidence.")
     else:
-        st.session_state.fixi_mood = "⚡ Streaming Analysis..."
+        st.session_state.fixi_mood = "⚡ Telemetry Active..."
         
         status_container = st.empty()
-        status_container.markdown("### 🧠 FIXI is analyzing your evidence and problem...")
+        status_container.markdown(f"### 🧠 {companion_title} is running visor diagnostics...")
 
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
@@ -500,7 +525,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             notes_str = "\n".join([f"- {fname}: {note}" for fname, note in file_notes.items()])
 
             prompt = (
-                f"You are FIXI, a polite, honest, and rigorous {theme_choice} AI companion of DS-FixIT.\n"
+                f"You are {companion_title}, an advanced, rigorous {theme_choice} AI assistant integrated into DS-FixIT.\n"
                 f"Selected Solver Mode: {solver_mode}\n\n"
                 "CRITICAL TAG REQUIREMENTS:\n"
                 "You MUST start your response with these exact lines:\n"
@@ -544,9 +569,9 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             except Exception:
                                 pass
 
-            status_container.markdown("### ⚡ FIXI is streaming live response...")
+            status_container.markdown(f"### ⚡ {companion_title} is streaming telemetry stream...")
             st.divider()
-            st.markdown("## ⚡ FIXI Live Diagnostic Stream")
+            st.markdown("## ⚡ Live Telemetry Diagnostic Stream")
             
             def stream_generator():
                 stream = client.chat.completions.create(
@@ -606,7 +631,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
 
 if "latest_result" in st.session_state and st.session_state.latest_result:
     st.divider()
-    st.markdown("## 🔍 FIXI's Diagnostic Report")
+    st.markdown("## 🔍 Diagnostic Telemetry Report")
 
     res_text = str(st.session_state.latest_result)
     
@@ -653,11 +678,11 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         <head><title>DS-FixIT Diagnostic Report</title></head>
         <body style="font-family: Arial, sans-serif; padding: 30px; color: #333;">
             <h1 style="color: {primary_color};">DS-FixIT 🚀 Diagnostic Report</h1>
-            <p><b>Mode:</b> {solver_mode} | <b>Theme:</b> {theme_choice}</p>
+            <p><b>Mode:</b> {solver_mode} | <b>Visor HUD:</b> {theme_choice}</p>
             <hr/>
             <div>{clean_report.replace(chr(10), '<br>')}</div>
             <hr/>
-            <p style="font-size: 11px; color: #777;">Generated by FIXI • DS-FixIT © 2026</p>
+            <p style="font-size: 11px; color: #777;">Generated by {companion_title} • DS-FixIT © 2026</p>
         </body>
         </html>
         """
@@ -666,16 +691,16 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
 # ---------------- INTERACTIVE CHAT ----------------
 
 st.divider()
-st.markdown("## 💬 Talk with FIXI")
+st.markdown(f"## 💬 Talk with {companion_title}")
 for message in st.session_state.messages:
-    avatar_icon = "🧿" if message["role"] == "assistant" else "👤"
+    avatar_icon = "⚡" if message["role"] == "assistant" else "👤"
     with st.chat_message(message["role"], avatar=avatar_icon):
         st.markdown(message["content"])
 
-question = st.chat_input("Ask FIXI a follow-up question...")
+question = st.chat_input(f"Ask {companion_title} a follow-up question...")
 if question:
     if "latest_result" not in st.session_state or not st.session_state.latest_result:
-        st.warning("Run an analysis first so FIXI has context!")
+        st.warning(f"Run an analysis first so {companion_title} has context!")
     else:
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user", avatar="👤"):
@@ -689,7 +714,7 @@ if question:
             active_rep = st.session_state.get("active_report", st.session_state.latest_result)
             
             system_context = (
-                f"You are FIXI, a polite, honest, and rigorous {theme_choice} AI companion of DS-FixIT.\n"
+                f"You are {companion_title}, an advanced, rigorous {theme_choice} AI assistant integrated into DS-FixIT.\n"
                 f"Active Solver Mode: {solver_mode}\n"
                 f"Original User Problem/Context: {active_desc}\n"
                 f"Previous Diagnostic Report:\n{active_rep}\n\n"
@@ -699,7 +724,7 @@ if question:
             conv = [{"role": "system", "content": system_context}]
             conv.extend(st.session_state.messages[-10:])
             
-            with st.chat_message("assistant", avatar="🧿"):
+            with st.chat_message("assistant", avatar="⚡"):
                 def chat_stream():
                     stream = client.chat.completions.create(
                         model="openrouter/free",
