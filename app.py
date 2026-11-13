@@ -1,10 +1,11 @@
 import streamlit as st
-import requests
+import sqlite3
+import hashlib
+import json
 import base64
-import mimetypes
 import time
 import io
-from PIL import Image, ImageOps
+from PIL import Image
 from openai import OpenAI
 
 st.set_page_config(
@@ -13,6 +14,129 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ---------------- DATABASE & AUTH ENGINE ----------------
+
+DB_FILE = "ds_fixit_vault.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            title TEXT,
+            description TEXT,
+            result TEXT,
+            images_json TEXT,
+            messages_json TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+def register_user(username: str, password: str) -> bool:
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username.strip(), hash_password(password)))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+def authenticate_user(username: str, password: str) -> bool:
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT password_hash FROM users WHERE username = ?", (username.strip(),))
+    row = c.fetchone()
+    conn.close()
+    return bool(row and row[0] == hash_password(password))
+
+def encode_images_to_b64(pil_images: list) -> list:
+    encoded_list = []
+    for img in pil_images:
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        encoded_list.append(base64.b64encode(buf.getvalue()).decode("utf-8"))
+    return encoded_list
+
+def decode_b64_to_images(b64_list: list) -> list:
+    pil_list = []
+    for b64_str in b64_list:
+        try:
+            img_bytes = base64.b64decode(b64_str)
+            pil_list.append(Image.open(io.BytesIO(img_bytes)).convert("RGB"))
+        except Exception:
+            pass
+    return pil_list
+
+def save_session_to_db(username: str, title: str, description: str, result: str, images: list, messages: list) -> int:
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    images_json = json.dumps(encode_images_to_b64(images))
+    messages_json = json.dumps(messages)
+    c.execute(
+        "INSERT INTO history (username, title, description, result, images_json, messages_json) VALUES (?, ?, ?, ?, ?, ?)",
+        (username, title, description, result, images_json, messages_json)
+    )
+    session_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return session_id
+
+def update_session_messages_in_db(session_id: int, messages: list):
+    if not session_id:
+        return
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("UPDATE history SET messages_json = ? WHERE id = ?", (json.dumps(messages), session_id))
+    conn.commit()
+    conn.close()
+
+def load_user_history(username: str) -> list:
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute(
+        "SELECT id, title, description, result, images_json, messages_json FROM history WHERE username = ? ORDER BY id ASC",
+        (username,)
+    )
+    rows = c.fetchall()
+    conn.close()
+    loaded = []
+    for r in rows:
+        loaded.append({
+            "id": r[0],
+            "title": r[1],
+            "description": r[2],
+            "result": r[3],
+            "images": decode_b64_to_images(json.loads(r[4] or "[]")),
+            "messages": json.loads(r[5] or "[]")
+        })
+    return loaded
+
+init_db()
+
+# ---------------- IMAGE OPTIMIZER ----------------
+
+def optimize_image_for_vision(uploaded_file, max_dim=1024) -> Image.Image:
+    """Resizes large images down to max_dim while preserving aspect ratio for 3x-5x faster API inference."""
+    img = Image.open(uploaded_file).convert("RGB")
+    img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+    return img
 
 # ---------------- CONFIG & STYLING ----------------
 
@@ -141,6 +265,9 @@ div.stButton > button:hover {
 
 # ---------------- SESSION STATE ----------------
 
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -156,11 +283,56 @@ if "active_images" not in st.session_state:
 if "active_description" not in st.session_state:
     st.session_state.active_description = ""
 
+if "active_session_id" not in st.session_state:
+    st.session_state.active_session_id = None
+
 # ---------------- SIDEBAR ----------------
 
 with st.sidebar:
     st.markdown("## 🚀 DS-FixIT")
-    st.caption("Universal AI Problem Detector • v5.8")
+    st.caption("Universal AI Problem Detector • v6.0 Turbo")
+    st.divider()
+
+    # -------- AUTH / ACCOUNT PORTAL --------
+    st.markdown("### 🔐 Account & Cloud Vault")
+    if st.session_state.current_user:
+        st.success(f"Logged in as **{st.session_state.current_user}**")
+        if st.button("🚪 Log Out", use_container_width=True):
+            st.session_state.current_user = None
+            st.session_state.history = []
+            st.session_state.messages = []
+            st.session_state.latest_result = None
+            st.session_state.active_images = []
+            st.session_state.active_description = ""
+            st.session_state.active_session_id = None
+            st.rerun()
+    else:
+        auth_tab1, auth_tab2 = st.tabs(["Login", "Sign Up"])
+        with auth_tab1:
+            login_user = st.text_input("Username", key="login_u")
+            login_pass = st.text_input("Password", type="password", key="login_p")
+            if st.button("🔓 Login", use_container_width=True):
+                if authenticate_user(login_user, login_pass):
+                    st.session_state.current_user = login_user.strip()
+                    st.session_state.history = load_user_history(st.session_state.current_user)
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+        with auth_tab2:
+            reg_user = st.text_input("New Username", key="reg_u")
+            reg_pass = st.text_input("New Password", type="password", key="reg_p")
+            if st.button("✨ Create Account", use_container_width=True):
+                if not reg_user.strip() or not reg_pass.strip():
+                    st.warning("Enter both username and password.")
+                elif register_user(reg_user, reg_pass):
+                    st.session_state.current_user = reg_user.strip()
+                    st.session_state.history = []
+                    st.success("Account created! Vault unlocked.")
+                    st.rerun()
+                else:
+                    st.error("Username already taken.")
+        st.caption("💡 Guest mode active (history clears on refresh unless logged in).")
+
     st.divider()
 
     st.markdown("### 🤖 FIXI Cyber Companion")
@@ -172,7 +344,7 @@ with st.sidebar:
         <span style="font-size: 12px; opacity: 0.8;">Status: {st.session_state.fixi_mood}</span><br><br>
         <span class="tech-badge">Honest</span> 
         <span class="tech-badge">Polite</span> 
-        <span class="tech-badge">Multi-Perspective</span>
+        <span class="tech-badge">Turbo Stream</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -195,6 +367,15 @@ with st.sidebar:
 
     st.divider()
     st.markdown("### 🧠 FIXI Memory Vault")
+    if st.button("➕ New Clean Scan", use_container_width=True):
+        st.session_state.latest_result = None
+        st.session_state.active_description = ""
+        st.session_state.active_report = ""
+        st.session_state.active_images = []
+        st.session_state.messages = []
+        st.session_state.active_session_id = None
+        st.rerun()
+
     search_query = st.text_input("🔍 Search past sessions", placeholder="Keyword...")
 
     if not st.session_state.history:
@@ -205,13 +386,14 @@ with st.sidebar:
             if search_query.lower() in item["title"].lower() or search_query.lower() in item["result"].lower()
         ] if search_query else st.session_state.history
 
-        for i, item in enumerate(reversed(filtered_history[-10:])):
-            if st.button(f"📌 {item['title'][:25]}...", key=f"history_{i}", use_container_width=True):
+        for i, item in enumerate(reversed(filtered_history[-15:])):
+            if st.button(f"📌 {item['title'][:25]}...", key=f"history_{item.get('id', i)}_{i}", use_container_width=True):
                 st.session_state.latest_result = item["result"]
                 st.session_state.active_description = item.get("description", "")
                 st.session_state.active_report = item["result"]
                 st.session_state.active_images = item.get("images", [])
                 st.session_state.messages = item.get("messages", [])
+                st.session_state.active_session_id = item.get("id")
                 st.rerun()
 
     st.divider()
@@ -226,7 +408,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">DS-FixIT 🚀</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Detect. Analyse. Fix. • Active Mode: ' + solver_mode + '</div>', unsafe_allow_html=True)
-st.write("Instant multi-modal AI vision inspection with your blue cyber anime face companion.")
+st.write("Turbo-compressed multi-modal vision inspection with persistent user vaults & live streaming.")
 st.divider()
 
 # ---------------- INPUT SECTION ----------------
@@ -255,8 +437,9 @@ if uploaded_files:
         c1, c2 = st.columns([1, 2])
         with c1:
             if file.type.startswith("image/"):
-                img = Image.open(file).convert("RGB")
-                st.image(img, caption=f"Evidence: {file.name}", width=240)
+                # Auto-optimize image dimensions for rapid upload and fast AI vision processing
+                img = optimize_image_for_vision(file, max_dim=1024)
+                st.image(img, caption=f"Evidence: {file.name} (Optimized)", width=240)
                 current_prepared_images.append(img)
             else:
                 st.write(f"📁 **{file.name}** ({file.type or 'file'})")
@@ -270,13 +453,13 @@ elif "active_images" in st.session_state and st.session_state.active_images:
         st.image(img, caption=f"Historical Evidence #{idx+1}", width=240)
         current_prepared_images.append(img)
 
-# ---------------- ANALYSIS ENGINE ----------------
+# ---------------- ANALYSIS ENGINE (STREAMING) ----------------
 
 if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True):
     if not description.strip() and not uploaded_files and not st.session_state.get("active_images"):
         st.warning("Please describe the problem or upload evidence.")
     else:
-        st.session_state.fixi_mood = "💻 Processing & Analyzing..."
+        st.session_state.fixi_mood = "⚡ Streaming Analysis..."
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
             client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
@@ -291,7 +474,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                 "RISK_LEVEL: [High / Medium / Low]\n"
                 "CONFIDENCE_SCORE: [e.g. 95%]\n\n"
                 "CRITICAL FORMATTING GUIDELINES:\n"
-                "- Keep explanations punchy and direct. Avoid long paragraphs.\n"
+                "- Keep explanations punchy, fast, and direct. Avoid filler.\n"
                 "- Use bold markdown (**...**) exclusively on critical failure points, key root causes, and primary action items.\n"
                 "- Use LaTeX ($...$ or $$...$$) for all math equations and formulas.\n"
                 "- Inspect the uploaded image(s) thoroughly to independently detect and locate fractures, anomalies, structural defects, or errors.\n\n"
@@ -308,7 +491,7 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
             
             for img in current_prepared_images:
                 buf = io.BytesIO()
-                img.save(buf, format="JPEG")
+                img.save(buf, format="JPEG", quality=85)
                 encoded = base64.b64encode(buf.getvalue()).decode("utf-8")
                 content.append({
                     "type": "image_url",
@@ -328,21 +511,45 @@ if st.button("🚀 ANALYSE WITH FIXI", type="primary", use_container_width=True)
                             except Exception:
                                 pass
 
-            with st.status("🧠 FIXI Neural Interface...", expanded=True) as status:
-                st.write("✨ Initializing blue cyber-vision scan...")
-                response = client.chat.completions.create(model="openrouter/free", messages=[{"role": "user", "content": content}])
-                result = response.choices[0].message.content
-                status.update(label="🚀 Diagnosis Ready!", state="complete", expanded=False)
+            st.divider()
+            st.markdown("## ⚡ FIXI Live Diagnostic Stream")
+            
+            def stream_generator():
+                stream = client.chat.completions.create(
+                    model="openrouter/free",
+                    messages=[{"role": "user", "content": content}],
+                    stream=True
+                )
+                for chunk in stream:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
 
+            result = st.write_stream(stream_generator())
+
+            session_title = description[:40] or ("Session Evidence" if current_prepared_images else "Session")
             st.session_state.latest_result = result
             st.session_state.active_description = description
             st.session_state.active_report = result
             st.session_state.active_images = current_prepared_images
-            st.session_state.messages = []  # Fresh chat for new analysis
+            st.session_state.messages = []
             st.session_state.fixi_mood = "🎯 Ready for Next Task"
-            
+
+            new_id = None
+            if st.session_state.current_user:
+                new_id = save_session_to_db(
+                    st.session_state.current_user,
+                    session_title,
+                    description,
+                    result,
+                    current_prepared_images,
+                    []
+                )
+
+            st.session_state.active_session_id = new_id
             st.session_state.history.append({
-                "title": description[:40] or ("Session Evidence" if current_prepared_images else "Session"),
+                "id": new_id,
+                "title": session_title,
                 "description": description,
                 "result": result,
                 "images": current_prepared_images,
@@ -414,22 +621,24 @@ if "latest_result" in st.session_state and st.session_state.latest_result:
         """
         st.download_button("📄 Download Official PDF Report", data=pdf_html_content, file_name="Report.html", mime="text/html", key="html_rep_btn")
 
-# ---------------- INTERACTIVE CHAT ----------------
+# ---------------- INTERACTIVE CHAT (STREAMING + DB SYNC) ----------------
 
 st.divider()
 st.markdown("## 💬 Talk with FIXI")
 for message in st.session_state.messages:
-    # Use blue cyber face avatar icon for FIXI's responses
     avatar_icon = "🧿" if message["role"] == "assistant" else "👤"
     with st.chat_message(message["role"], avatar=avatar_icon):
         st.markdown(message["content"])
 
 question = st.chat_input("Ask FIXI a follow-up question...")
 if question:
-    if "latest_result" not in st.session_state:
+    if "latest_result" not in st.session_state or not st.session_state.latest_result:
         st.warning("Run an analysis first so FIXI has context!")
     else:
         st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user", avatar="👤"):
+            st.markdown(question)
+
         try:
             api_key = st.secrets["OPENROUTER_APIKEY"]
             client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
@@ -448,10 +657,30 @@ if question:
             conv = [{"role": "system", "content": system_context}]
             conv.extend(st.session_state.messages[-10:])
             
-            res = client.chat.completions.create(model="openrouter/free", messages=conv)
-            st.session_state.messages.append({"role": "assistant", "content": res.choices[0].message.content})
+            with st.chat_message("assistant", avatar="🧿"):
+                def chat_stream():
+                    stream = client.chat.completions.create(
+                        model="openrouter/free",
+                        messages=conv,
+                        stream=True
+                    )
+                    for chunk in stream:
+                        delta = chunk.choices[0].delta.content
+                        if delta:
+                            yield delta
+
+                reply = st.write_stream(chat_stream())
+
+            st.session_state.messages.append({"role": "assistant", "content": reply})
             
-            if st.session_state.history:
+            # Sync chat messages back to session list & SQLite DB
+            active_id = st.session_state.get("active_session_id")
+            if active_id:
+                update_session_messages_in_db(active_id, st.session_state.messages)
+                for h in st.session_state.history:
+                    if h.get("id") == active_id:
+                        h["messages"] = st.session_state.messages
+            elif st.session_state.history:
                 st.session_state.history[-1]["messages"] = st.session_state.messages
                 
             st.rerun()
